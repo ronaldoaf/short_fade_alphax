@@ -23,3 +23,9 @@ Médias = SMA sobre o fechamento (igual ao app da AlphaX): MA5, MA10, MA30.
 
 ## Reentrada
 - Permitida no mesmo ativo sempre que a configuração continuar válida. O resultado da operação anterior não influencia (MUBARAK).
+
+## Execução (atual)
+- Short, alavancagem 10x, margem isolada, ~$1 por operação.
+- TP: +100% sobre a margem = queda de **10%** no preço.
+- Sem SL: a margem é liquidada numa alta de ~**9–10%** (10% menos a margem de manutenção).
+- Payoff ≈ 1:1 → é preciso acertar **mais de ~50%** (mais um pouco por causa do funding) para lucrar.

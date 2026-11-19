@@ -29,3 +29,4 @@ Médias = SMA sobre o fechamento (igual ao app da AlphaX): MA5, MA10, MA30.
 - TP: +100% sobre a margem = queda de **10%** no preço.
 - Sem SL: a margem é liquidada numa alta de ~**9–10%** (10% menos a margem de manutenção).
 - Payoff ≈ 1:1 → é preciso acertar **mais de ~50%** (mais um pouco por causa do funding) para lucrar.
+- Saída por tempo: se nem TP nem liquidação ocorrerem em **24h**, fecha a mercado (resultado = variação do preço x10).

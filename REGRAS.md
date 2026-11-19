@@ -11,7 +11,8 @@ Médias = SMA sobre o fechamento (igual ao app da AlphaX): MA5, MA10, MA30.
 1. Preço < MA30 e MA5 < MA10 < MA30.
 2. MA30 caindo (ex.: menor que 10 velas atrás). Nos ❌ PROS e SPCH ela ainda subia.
 3. Sem candle de alta grande nas últimas ~10 velas (amplitude > ~4x a média). Ex.: ZIL.
-4. Estar esticado para baixo (até -22% da MA30) **não** impediu entrada.
+4. Vela(s) de baixa muito grande(s) nas últimas ~3 velas de 4h (queda > ~2,5–3x a amplitude média): você recusa (SPCH 2,9x, TWLO 3,7x; AGPU 1,8x aprovado). **No backtest esse filtro não melhorou o resultado** (`--bigdn`), então por ora fica desligado.
+5. Estar esticado para baixo (até -22% da MA30) **não** impediu entrada.
 
 ## 15m (confirmação)
 5. Preço < MA30 e MA30 caindo. MA5 < MA10 **não** é obrigatório: no ✅ MUBARAK a MA5 estava
@@ -19,7 +20,7 @@ Médias = SMA sobre o fechamento (igual ao app da AlphaX): MA5, MA10, MA30.
 6. Sem repique em andamento (preço voltando acima da MA30). Ex.: ZIL.
 
 ## Placar
-6 exemplos (3 ✅, 3 ❌), regra (com 15m relaxado) acerta 6/6. Ainda poucos dados.
+7 exemplos (3 ✅, 4 ❌), regra acerta 7/7 (TWLO reprovado pelo volume). Ainda poucos dados.
 
 ## Reentrada
 - Permitida no mesmo ativo sempre que a configuração continuar válida. O resultado da operação anterior não influencia (MUBARAK).

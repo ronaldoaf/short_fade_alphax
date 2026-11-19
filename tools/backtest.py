@@ -54,6 +54,10 @@ def features(df, big_x):
     cur_rng = (g["h"].cummax() - g["l"].cummin()) / cur_o
     base = full["rng"].shift(10).rolling(30).mean().reindex(b).to_numpy()
     cur_big = (c > cur_o) & (cur_rng > big_x * base)
+    full["dn"] = (full["o"] - full["c"]) / full["o"] / full["rng"].shift(10).rolling(30).mean()
+    dn_prev = full["dn"].shift(1).rolling(2).max().reindex(b).to_numpy()
+    cur_dn = ((cur_o - c) / cur_o) / base
+    df["bigdn"] = np.fmax(dn_prev, cur_dn.to_numpy())
     df["ok4"] = (c < ma30_4) & (ma5 < ma10) & (ma10 < ma30_4) & (ma30_4 < m[:, 3]) & (m[:, 4] == 0) & ~cur_big
     return df
 
@@ -80,6 +84,7 @@ def main():
     p.add_argument("--vol", type=float, default=50_000)
     p.add_argument("--liq", type=float, default=9.5)
     p.add_argument("--big", type=float, default=4)
+    p.add_argument("--bigdn", type=float, default=99, help="máx. queda de vela 4h recente (x amplitude média)")
     a = p.parse_args()
 
     data = {}
@@ -108,7 +113,7 @@ def main():
             for i, r in zip(pos, ranks.to_numpy()):
                 if i <= free_at:
                     continue
-                if name == "regra" and not (d["ok4"].iat[i] and d["ok15"].iat[i]):
+                if name == "regra" and not (d["ok4"].iat[i] and d["ok15"].iat[i] and d["bigdn"].iat[i] <= a.bigdn):
                     continue
                 pnl, how, j = simulate(d, i, a.liq / 100)
                 if pnl is None:

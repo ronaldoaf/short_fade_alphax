@@ -20,3 +20,6 @@ Médias = SMA sobre o fechamento (igual ao app da AlphaX): MA5, MA10, MA30.
 
 ## Placar
 6 exemplos (3 ✅, 3 ❌), regra (com 15m relaxado) acerta 6/6. Ainda poucos dados.
+
+## Reentrada
+- Permitida no mesmo ativo sempre que a configuração continuar válida. O resultado da operação anterior não influencia (MUBARAK).

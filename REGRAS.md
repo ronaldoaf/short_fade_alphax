@@ -14,8 +14,9 @@ Médias = SMA sobre o fechamento (igual ao app da AlphaX): MA5, MA10, MA30.
 4. Estar esticado para baixo (até -22% da MA30) **não** impediu entrada.
 
 ## 15m (confirmação)
-5. Preço < MA30 e MA5 < MA10 (a exigência estrita pode ser relaxada; ver SPCH).
+5. Preço < MA30 e MA30 caindo. MA5 < MA10 **não** é obrigatório: no ✅ MUBARAK a MA5 estava
+   levemente acima da MA10 (lateralização curta abaixo da MA30).
 6. Sem repique em andamento (preço voltando acima da MA30). Ex.: ZIL.
 
 ## Placar
-5 exemplos (2 ✅, 3 ❌), regra acerta 5/5. Ainda poucos dados.
+6 exemplos (3 ✅, 3 ❌), regra (com 15m relaxado) acerta 6/6. Ainda poucos dados.

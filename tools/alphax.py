@@ -41,3 +41,15 @@ def worst_24h(n=20):
     rows = [(r["s"], float(r["m24h"]), float(r.get("qv24h") or 0)) for r in tickers()
             if r["s"].endswith("-SWAP-USDT")]
     return sorted(rows, key=lambda x: x[1])[:n]
+
+
+def funding(symbol, limit=500, from_id=None):
+    """Histórico de funding: [{t (ms), rate}] crescente. Positivo = short recebe."""
+    params = {"symbol_id": sym(symbol), "limit": limit}
+    if from_id:
+        params["from_id"] = from_id
+    url = f"{BASE}/api/v1/futures/history_funding_rates?{urllib.parse.urlencode(params)}"
+    with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=20) as r:
+        rows = json.load(r)
+    return sorted(({"id": int(x["id"]), "t": int(x["settleTime"]), "rate": float(x["settleRate"])} for x in rows),
+                  key=lambda x: x["t"])

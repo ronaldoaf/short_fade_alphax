@@ -78,6 +78,22 @@ def simulate(df, i, liq, tp=0.10, lev=10):
     return max(-1.0, -(x / e - 1) * lev), "tempo", i + DAY
 
 
+def load_funding(symbol):
+    f = ROOT / "data/cache/funding" / f"{symbol}.csv"
+    if not f.exists():
+        return None
+    d = pd.read_csv(f)
+    return d if len(d) else None
+
+
+def funding_pnl(fund, t0, t1, lev=10):
+    """Soma do funding (fração da margem) entre abertura e saída. Rate > 0: short recebe."""
+    if fund is None:
+        return 0.0
+    m = (fund["t"] > t0) & (fund["t"] <= t1)
+    return float(fund.loc[m, "rate"].sum()) * lev
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--top", type=int, default=10)
@@ -105,6 +121,7 @@ def main():
     for s, d in data.items():
         if s not in cand.index.get_level_values(0):
             continue
+        fund = load_funding(s)
         ranks = cand.loc[s]
         idx = pd.Index(d["t"])
         pos = idx.get_indexer(ranks.index)
@@ -118,7 +135,10 @@ def main():
                 pnl, how, j = simulate(d, i, a.liq / 100)
                 if pnl is None:
                     continue
-                trades[name].append({"s": s, "t": d["t"].iat[i], "rank": r, "pnl": pnl, "saida": how})
+                fp = funding_pnl(fund, d["t"].iat[i], d["t"].iat[j])
+                trades[name].append({"s": s, "t": d["t"].iat[i], "rank": r, "pnl_preco": pnl,
+                                     "funding": fp, "pnl": max(-1.0, pnl + fp), "saida": how,
+                                     "tem_funding": fund is not None})
                 free_at = j
 
     print(f"top={a.top} vol>={a.vol:,.0f} liq={a.liq}% big={a.big}x | "
@@ -134,6 +154,8 @@ def main():
         print(f"\n== {name}: {len(t)} trades ({len(t)/days:.1f}/dia)")
         print(f"   TP {sx.get('tp',0):.0%}  liq {sx.get('liq',0):.0%}  tempo {sx.get('tempo',0):.0%}"
               f"  | resultado médio {t['pnl'].mean():+.1%} da margem  (soma {t['pnl'].sum():+.1f} margens)")
+        print(f"   sem funding {t['pnl_preco'].mean():+.1%} | funding médio {t['funding'].mean():+.2%}"
+              f" (pior {t['funding'].min():+.1%}) | trades com dado de funding: {t['tem_funding'].mean():.0%}")
         t["dia"] = pd.to_datetime(t["t"], unit="ms").dt.strftime("%m-%d")
         wk = t.groupby(pd.to_datetime(t["t"], unit="ms").dt.to_period("W"))["pnl"].agg(["count", "mean", "sum"])
         print(wk.round(2).to_string())

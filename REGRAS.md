@@ -20,7 +20,7 @@ Médias = SMA sobre o fechamento (igual ao app da AlphaX): MA5, MA10, MA30.
 6. Sem repique em andamento (preço voltando acima da MA30). Ex.: ZIL.
 
 ## Placar
-7 exemplos (3 ✅, 4 ❌), regra acerta 7/7 (TWLO reprovado pelo volume). Ainda poucos dados.
+8 exemplos (4 ✅, 4 ❌), regra acerta 8/8. Ainda poucos dados.
 
 ## Reentrada
 - Permitida no mesmo ativo sempre que a configuração continuar válida. O resultado da operação anterior não influencia (MUBARAK).

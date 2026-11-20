@@ -17,10 +17,11 @@ Médias = SMA sobre o fechamento (igual ao app da AlphaX): MA5, MA10, MA30.
 ## 15m (confirmação)
 5. Preço < MA30 e MA30 caindo. MA5 < MA10 **não** é obrigatório: no ✅ MUBARAK a MA5 estava
    levemente acima da MA10 (lateralização curta abaixo da MA30).
-6. Sem repique em andamento (preço voltando acima da MA30). Ex.: ZIL.
+6. Sem candle de alta grande no 15m nas últimas 10 velas (amplitude > **4x** a média). AKE (❌) tinha 13,4x; todos os ✅ ≤ 2,2x. No backtest: +8,5% → **+10,0%** por trade e menos liquidações.
+7. Sem repique em andamento (preço voltando acima da MA30). Ex.: ZIL.
 
 ## Placar
-9 exemplos (5 ✅, 4 ❌), regra acerta 9/9. Ainda poucos dados.
+10 exemplos (5 ✅, 5 ❌), regra acerta 10/10. Ainda poucos dados.
 
 ## Reentrada
 - Permitida no mesmo ativo sempre que a configuração continuar válida. O resultado da operação anterior não influencia (MUBARAK).
@@ -34,3 +35,4 @@ Médias = SMA sobre o fechamento (igual ao app da AlphaX): MA5, MA10, MA30.
 
 ## Observações testadas e sem efeito no backtest (por ora)
 - Rompimento da mínima de 20 velas de 4h (SOXL, MVLL citam "rompeu a mínima com momentum"): mesmo resultado médio com ou sem (`--brk`).
+- Exigir que a tendência de queda no 4h já existisse 2 velas antes (`--pre`): piorou o backtest (+7,2%) e reprovaria o SOXL (✅). Descartado.

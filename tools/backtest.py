@@ -33,6 +33,9 @@ def features(df, big_x):
     # 15m
     ma30 = c.rolling(30).mean()
     df["ok15"] = (c < ma30) & (ma30 < ma30.shift(10))
+    rng15 = (df["h"] - df["l"]) / df["o"]
+    up15 = (df["c"] > df["o"]) & (rng15 > 0) 
+    df["bigup15"] = (rng15.where(up15, 0) / rng15.shift(10).rolling(30).mean()).rolling(10).max()
 
     # 4h a partir do 15m (blocos UTC de 4h), com a vela em formação
     b = df["t"] // (H4 * BAR)
@@ -59,6 +62,10 @@ def features(df, big_x):
     cur_dn = ((cur_o - c) / cur_o) / base
     df["bigdn"] = np.fmax(dn_prev, cur_dn.to_numpy())
     low20 = full["l"].shift(1).rolling(20).min().reindex(b).to_numpy()
+    # tendência já existia antes: MA5<MA10<MA30 e MA30 caindo no fechamento de 2 velas de 4h atrás
+    fm5, fm10, fm30 = (full["c"].rolling(n).mean() for n in (5, 10, 30))
+    pre = (fm5 < fm10) & (fm10 < fm30) & (fm30 < fm30.shift(10))
+    df["pre"] = pre.shift(2).reindex(b).fillna(False).to_numpy()
     df["brk"] = c < low20  # rompeu a mínima das últimas 20 velas de 4h
     df["ok4"] = (c < ma30_4) & (ma5 < ma10) & (ma10 < ma30_4) & (ma30_4 < m[:, 3]) & (m[:, 4] == 0) & ~cur_big
     return df
@@ -102,6 +109,8 @@ def main():
     p.add_argument("--vol", type=float, default=50_000)
     p.add_argument("--liq", type=float, default=9.5)
     p.add_argument("--big", type=float, default=4)
+    p.add_argument("--big15", type=float, default=4, help="máx. candle de alta no 15m (últimas 10 velas, x média)")
+    p.add_argument("--pre", action="store_true", help="exige tendência de queda no 4h já 2 velas antes")
     p.add_argument("--brk", type=int, default=0, help="1: só rompimento da mínima de 20 velas 4h; 2: só sem rompimento")
     p.add_argument("--bigdn", type=float, default=99, help="máx. queda de vela 4h recente (x amplitude média)")
     a = p.parse_args()
@@ -134,6 +143,8 @@ def main():
                 if i <= free_at:
                     continue
                 if name == "regra" and not (d["ok4"].iat[i] and d["ok15"].iat[i] and d["bigdn"].iat[i] <= a.bigdn
+                                          and d["bigup15"].iat[i] <= a.big15
+                                          and (not a.pre or d["pre"].iat[i])
                                           and (a.brk == 0 or (d["brk"].iat[i] == (a.brk == 1)))):
                     continue
                 pnl, how, j = simulate(d, i, a.liq / 100)

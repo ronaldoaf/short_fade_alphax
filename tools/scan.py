@@ -25,7 +25,7 @@ def main():
         df = pd.DataFrame(alphax.klines(s, "15m", 1000))
         df = df[df["t"] + 15 * 60 * 1000 <= now].reset_index(drop=True)  # só candles fechados
         f = features(df, 4).iloc[-1]
-        return s, m, qv, bool(f.ok4), bool(f.ok15), f.c
+        return s, m, qv, bool(f.ok4), bool(f.ok15 and f.bigup15 <= 4), f.c
 
     with ThreadPoolExecutor(8) as ex:
         res = list(ex.map(one, worst))

@@ -20,7 +20,7 @@ Médias = SMA sobre o fechamento (igual ao app da AlphaX): MA5, MA10, MA30.
 6. Sem repique em andamento (preço voltando acima da MA30). Ex.: ZIL.
 
 ## Placar
-8 exemplos (4 ✅, 4 ❌), regra acerta 8/8. Ainda poucos dados.
+9 exemplos (5 ✅, 4 ❌), regra acerta 9/9. Ainda poucos dados.
 
 ## Reentrada
 - Permitida no mesmo ativo sempre que a configuração continuar válida. O resultado da operação anterior não influencia (MUBARAK).
@@ -31,3 +31,6 @@ Médias = SMA sobre o fechamento (igual ao app da AlphaX): MA5, MA10, MA30.
 - Sem SL: a margem é liquidada numa alta de ~**9–10%** (10% menos a margem de manutenção).
 - Payoff ≈ 1:1 → é preciso acertar **mais de ~50%** (mais um pouco por causa do funding) para lucrar.
 - Saída por tempo: se nem TP nem liquidação ocorrerem em **24h**, fecha a mercado (resultado = variação do preço x10).
+
+## Observações testadas e sem efeito no backtest (por ora)
+- Rompimento da mínima de 20 velas de 4h (SOXL, MVLL citam "rompeu a mínima com momentum"): mesmo resultado médio com ou sem (`--brk`).

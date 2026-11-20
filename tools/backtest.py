@@ -58,6 +58,8 @@ def features(df, big_x):
     dn_prev = full["dn"].shift(1).rolling(2).max().reindex(b).to_numpy()
     cur_dn = ((cur_o - c) / cur_o) / base
     df["bigdn"] = np.fmax(dn_prev, cur_dn.to_numpy())
+    low20 = full["l"].shift(1).rolling(20).min().reindex(b).to_numpy()
+    df["brk"] = c < low20  # rompeu a mínima das últimas 20 velas de 4h
     df["ok4"] = (c < ma30_4) & (ma5 < ma10) & (ma10 < ma30_4) & (ma30_4 < m[:, 3]) & (m[:, 4] == 0) & ~cur_big
     return df
 
@@ -100,6 +102,7 @@ def main():
     p.add_argument("--vol", type=float, default=50_000)
     p.add_argument("--liq", type=float, default=9.5)
     p.add_argument("--big", type=float, default=4)
+    p.add_argument("--brk", type=int, default=0, help="1: só rompimento da mínima de 20 velas 4h; 2: só sem rompimento")
     p.add_argument("--bigdn", type=float, default=99, help="máx. queda de vela 4h recente (x amplitude média)")
     a = p.parse_args()
 
@@ -130,7 +133,8 @@ def main():
             for i, r in zip(pos, ranks.to_numpy()):
                 if i <= free_at:
                     continue
-                if name == "regra" and not (d["ok4"].iat[i] and d["ok15"].iat[i] and d["bigdn"].iat[i] <= a.bigdn):
+                if name == "regra" and not (d["ok4"].iat[i] and d["ok15"].iat[i] and d["bigdn"].iat[i] <= a.bigdn
+                                          and (a.brk == 0 or (d["brk"].iat[i] == (a.brk == 1)))):
                     continue
                 pnl, how, j = simulate(d, i, a.liq / 100)
                 if pnl is None:

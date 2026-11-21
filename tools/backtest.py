@@ -74,6 +74,13 @@ def features(df, big_x, side=1):
     pre = (fm5 < fm10) & (fm10 < fm30) & (fm30 < fm30.shift(10))
     df["pre"] = pre.shift(2).reindex(b).fillna(False).to_numpy()
     df["brk"] = c < low20  # rompeu a mínima das últimas 20 velas de 4h
+    # ATR(14) do 4h e do 15m, em fração do preço (só velas já fechadas)
+    pc = full["c"].shift(1)
+    tr4 = pd.concat([full["h"] - full["l"], (full["h"] - pc).abs(), (full["l"] - pc).abs()], axis=1).max(axis=1)
+    df["atr4"] = (tr4.rolling(14).mean() / full["c"]).shift(1).reindex(b).to_numpy()
+    pc15 = c.shift(1)
+    tr15 = pd.concat([df["h"] - df["l"], (df["h"] - pc15).abs(), (df["l"] - pc15).abs()], axis=1).max(axis=1)
+    df["atr15"] = tr15.rolling(14).mean() / c
     df["ok4"] = (S * (c - ma30_4) < 0) & (S * (ma5 - ma10) < 0) & (S * (ma10 - ma30_4) < 0) & (S * (ma30_4 - m[:, 3]) < 0) & (m[:, 4] == 0) & ~cur_big
     return df
 

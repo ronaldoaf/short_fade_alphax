@@ -47,3 +47,14 @@ Ressalva: só ~1 mês de dados, período de mercado em queda.
 ## Ferramentas
 - `python tools/scan.py`: sinais ao vivo.
 - `python tools/backtest.py`: backtest (opções acima).
+
+## Testes de saída (`python tools/exits.py`) — ATR(14) 4h mediano nas entradas: 6,4%
+| Variante | Trades | Média | Soma | Liq |
+|---|---|---|---|---|
+| Atual: alvo 10% | 515 | +11,0% | +56 | 25% |
+| Alvo 2 ATR | 451 | +13,5% | +61 | 24% |
+| Alvo 10% + stop 1 ATR | 547 | +11,8% | +64 | 12% |
+| Trailing 1,5 ATR ativa após 1 ATR | 428 | +13,4% | +57 | 20% |
+| Trailing fixo 5% sem alvo | 702 | +10,0% | +70 | 0% |
+| Sem alvo, 48h | 301 | +26,4% | +80 | 29% |
+Conclusão: diferenças de média dentro do ruído; stop/trailing reduzem muito as liquidações. Nenhuma mudança adotada ainda.

@@ -33,6 +33,9 @@ def features(df, big_x):
     # 15m
     ma30 = c.rolling(30).mean()
     df["ok15"] = (c < ma30) & (ma30 < ma30.shift(10))
+    m5_15, m10_15 = c.rolling(5).mean(), c.rolling(10).mean()
+    df["ord15"] = m5_15 < m10_15
+    df["below10"] = c < m10_15
     rng15 = (df["h"] - df["l"]) / df["o"]
     up15 = (df["c"] > df["o"]) & (rng15 > 0) 
     df["bigup15"] = (rng15.where(up15, 0) / rng15.shift(10).rolling(30).mean()).rolling(10).max()
@@ -110,6 +113,7 @@ def main():
     p.add_argument("--liq", type=float, default=9.5)
     p.add_argument("--big", type=float, default=4)
     p.add_argument("--big15", type=float, default=4, help="máx. candle de alta no 15m (últimas 10 velas, x média)")
+    p.add_argument("--m15", type=int, default=0, help="1: exige MA5<MA10 no 15m; 2: exige preço < MA10 no 15m")
     p.add_argument("--pre", action="store_true", help="exige tendência de queda no 4h já 2 velas antes")
     p.add_argument("--brk", type=int, default=0, help="1: só rompimento da mínima de 20 velas 4h; 2: só sem rompimento")
     p.add_argument("--bigdn", type=float, default=99, help="máx. queda de vela 4h recente (x amplitude média)")
@@ -145,6 +149,7 @@ def main():
                 if name == "regra" and not (d["ok4"].iat[i] and d["ok15"].iat[i] and d["bigdn"].iat[i] <= a.bigdn
                                           and d["bigup15"].iat[i] <= a.big15
                                           and (not a.pre or d["pre"].iat[i])
+                                          and (a.m15 == 0 or (d["ord15"].iat[i] if a.m15 == 1 else d["below10"].iat[i]))
                                           and (a.brk == 0 or (d["brk"].iat[i] == (a.brk == 1)))):
                     continue
                 pnl, how, j = simulate(d, i, a.liq / 100)

@@ -23,16 +23,18 @@ def main():
     def one(row):
         s, m, qv = row
         df = pd.DataFrame(alphax.klines(s, "15m", 1000))
+        live = features(df.copy(), 4).iloc[-1]  # inclui o candle em formação
         df = df[df["t"] + 15 * 60 * 1000 <= now].reset_index(drop=True)  # só candles fechados
         f = features(df, 4).iloc[-1]
-        return s, m, qv, bool(f.ok4), bool(f.ok15 and f.bigup15 <= 4), f.c
+        agora = "ok" if (live.ok4 and live.ok15 and live.bigup15 <= 4 and live.ord15) else "--"
+        return s, m, qv, bool(f.ok4), bool(f.ok15 and f.bigup15 <= 4), agora
 
     with ThreadPoolExecutor(8) as ex:
         res = list(ex.map(one, worst))
-    print(f"{'#':>2} {'ativo':22} {'24h':>7} {'vol24h':>12}  4h   15m  sinal")
-    for i, (s, m, qv, o4, o15, c) in enumerate(res, 1):
+    print(f"{'#':>2} {'ativo':22} {'24h':>7} {'vol24h':>12}  4h   15m  agora sinal")
+    for i, (s, m, qv, o4, o15, agora) in enumerate(res, 1):
         sig = "SHORT" if (o4 and o15 and qv >= a.vol) else ("(vol baixo)" if o4 and o15 else "")
-        print(f"{i:2d} {s.replace('-SWAP-USDT',''):22} {m*100:6.2f}% {qv:12,.0f}  {'ok' if o4 else '--':4} {'ok' if o15 else '--':4} {sig}")
+        print(f"{i:2d} {s.replace('-SWAP-USDT',''):22} {m*100:6.2f}% {qv:12,.0f}  {'ok' if o4 else '--':4} {'ok' if o15 else '--':4} {agora:5} {sig}")
 
 
 if __name__ == "__main__":

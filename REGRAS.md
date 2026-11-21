@@ -36,3 +36,7 @@ Médias = SMA sobre o fechamento (igual ao app da AlphaX): MA5, MA10, MA30.
 ## Observações testadas e sem efeito no backtest (por ora)
 - Rompimento da mínima de 20 velas de 4h (SOXL, MVLL citam "rompeu a mínima com momentum"): mesmo resultado médio com ou sem (`--brk`).
 - Exigir que a tendência de queda no 4h já existisse 2 velas antes (`--pre`): piorou o backtest (+7,2%) e reprovaria o SOXL (✅). Descartado.
+- Exigir MA5 < MA10 no 15m (`--m15 1`): +10,0% → +11,0% por trade, mas reprovaria o MUBARAK (✅). Diferença pequena; em observação. O NVDL (❌, "15m subindo") tinha MA5 > MA10 e preço voltando acima da MA30.
+
+## Uso do scanner
+- Coluna `agora` reavalia com o candle de 15m em formação (exige também MA5 < MA10). Confirme no gráfico antes de entrar: o sinal pode mudar dentro do candle.

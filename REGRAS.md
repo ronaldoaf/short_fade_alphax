@@ -1,43 +1,49 @@
-# Regras provisórias (atualizadas conforme os exemplos)
+# Estratégia Short Fade AlphaX: regras atuais
 
 Médias = SMA sobre o fechamento (igual ao app da AlphaX): MA5, MA10, MA30.
+O candle em formação entra no cálculo (como no app).
 
-## Universo
-- Ativos ordenados pelo pior retorno de 24h.
-- Liquidez: referência de volume 24h >= 50K USDT. **Fase de teste (aposta de $1): filtro flexível**,
-  aceita menos se a configuração for muito boa. Endurecer quando o tamanho aumentar.
+## 1. Universo
+- Perpétuos USDT da AlphaX ordenados pelo **pior retorno de 24h**.
+- Considerar os **10 piores** (os 5 piores deram resultado melhor por trade no backtest).
+- **Volume 24h >= 50.000 USDT**. Na fase de teste ($1 por trade) o limite é flexível.
 
-## 4h (tendência principal)
-1. Preço < MA30 e MA5 < MA10 < MA30.
-2. MA30 caindo (ex.: menor que 10 velas atrás). Nos ❌ PROS e SPCH ela ainda subia.
-3. Sem candle de alta grande nas últimas ~10 velas (amplitude > ~4x a média). Ex.: ZIL.
-4. Vela(s) de baixa muito grande(s) nas últimas ~3 velas de 4h (queda > ~2,5–3x a amplitude média): você recusa (SPCH 2,9x, TWLO 3,7x; AGPU 1,8x aprovado). **No backtest esse filtro não melhorou o resultado** (`--bigdn`), então por ora fica desligado.
-5. Estar esticado para baixo (até -22% da MA30) **não** impediu entrada.
+## 2. Gráfico de 4h: tendência (decide SE o ativo serve)
+1. Preço **abaixo da MA30**.
+2. Médias em ordem de queda: **MA5 < MA10 < MA30**.
+3. **MA30 caindo**: menor que a MA30 de 10 velas atrás.
+4. **Sem candle de alta grande** nas últimas 10 velas: nenhuma vela verde com amplitude > **4x** a amplitude média do ativo.
 
-## 15m (confirmação)
-5. Preço < MA30 e MA30 caindo. MA5 < MA10 **não** é obrigatório: no ✅ MUBARAK a MA5 estava
-   levemente acima da MA10 (lateralização curta abaixo da MA30).
-6. Sem candle de alta grande no 15m nas últimas 10 velas (amplitude > **4x** a média). AKE (❌) tinha 13,4x; todos os ✅ ≤ 2,2x. No backtest: +8,5% → **+10,0%** por trade e menos liquidações.
-7. Sem repique em andamento (preço voltando acima da MA30). Ex.: ZIL.
+## 3. Gráfico de 15m: momento (decide QUANDO entrar)
+5. Preço **abaixo da MA30**.
+6. **MA30 caindo** (menor que 10 velas atrás).
+7. **Sem candle de alta grande** nas últimas 10 velas: nenhuma vela verde com amplitude > **4x** a média.
+   - MA5 < MA10 é desejável (coluna `agora` do scanner), mas não obrigatório.
 
-## Placar
-19 exemplos (10 ✅, 9 ❌; inclui 5 do scanner), regra acerta os 14 com print. Ainda poucos dados.
+## 4. Execução
+- **Short**, alavancagem **10x**, margem **isolada**.
+- **Alvo: +100% da margem** (queda de 10% no preço).
+- **Sem stop**: liquidação numa alta de ~9,5%.
+- **Saída por tempo: 24h** (fecha a mercado).
+- **Reentrada** no mesmo ativo permitida sempre que a configuração continuar válida.
 
-## Reentrada
-- Permitida no mesmo ativo sempre que a configuração continuar válida. O resultado da operação anterior não influencia (MUBARAK).
+## Resultado no backtest (15/10 a 20/11/2026, com funding)
+| Universo | Trades | Alvo | Liquidação | Tempo | Média/trade |
+|---|---|---|---|---|---|
+| 10 piores | 523 | 33% | 26% | 41% | +10,0% |
+| 5 piores | 312 | 44% | 31% | 25% | +14,5% |
 
-## Execução (atual)
-- Short, alavancagem 10x, margem isolada, ~$1 por operação.
-- TP: +100% sobre a margem = queda de **10%** no preço.
-- Sem SL: a margem é liquidada numa alta de ~**9–10%** (10% menos a margem de manutenção).
-- Payoff ≈ 1:1 → é preciso acertar **mais de ~50%** (mais um pouco por causa do funding) para lucrar.
-- Saída por tempo: se nem TP nem liquidação ocorrerem em **24h**, fecha a mercado (resultado = variação do preço x10).
+Ressalva: só ~1 mês de dados, período de mercado em queda.
 
-## Observações testadas e sem efeito no backtest (por ora)
-- Rompimento da mínima de 20 velas de 4h (SOXL, MVLL citam "rompeu a mínima com momentum"): mesmo resultado médio com ou sem (`--brk`).
-- Exigir que a tendência de queda no 4h já existisse 2 velas antes (`--pre`): piorou o backtest (+7,2%) e reprovaria o SOXL (✅). Descartado.
-- Exigir MA5 < MA10 no 15m (`--m15 1`): +10,0% → +11,0% por trade, mas reprovaria o MUBARAK (✅). Diferença pequena; em observação. O NVDL (❌, "15m subindo") tinha MA5 > MA10 e preço voltando acima da MA30.
+## Testados e descartados / sem efeito
+- Rompimento da mínima de 20 velas de 4h (`--brk`): sem efeito.
+- Vela de baixa grande recente no 4h (`--bigdn`): não melhorou.
+- Tendência de 4h já existente 2 velas antes (`--pre`): piorou.
+- Remover o 15m (`--no15`): piora muito (+10,0% → +6,6%).
+- Alvos de 125% a 200% (`--tp`): resultado total parecido; mantido 100%.
+- Funding: impacto médio desprezível (< 0,2% da margem), mas casos extremos de até -30%.
+- Versão long espelhada (`--long`): perde (-11,6%/trade).
 
-## Uso do scanner
-- Coluna `agora` reavalia com o candle de 15m em formação (exige também MA5 < MA10). Confirme no gráfico antes de entrar: o sinal pode mudar dentro do candle.
-- Sem nenhuma regra do 15m (`--no15`): +10,0% → +6,6% por trade, liquidações 26% → 30%. Com top 5: +14,5% → +8,3%. **O 15m é necessário.**
+## Ferramentas
+- `python tools/scan.py`: sinais ao vivo.
+- `python tools/backtest.py`: backtest (opções acima).

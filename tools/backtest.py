@@ -75,6 +75,7 @@ def features(df, big_x):
 
 
 def simulate(df, i, liq, tp=0.10, lev=10):
+    """tp: queda de preço do alvo (0.10 = 10% = +100% da margem com 10x)."""
     """Resultado (fração da margem) e saída para um short aberto no fechamento do candle i."""
     e = df["c"].iat[i]
     hi = df["h"].to_numpy()[i + 1:i + 1 + DAY]
@@ -83,7 +84,7 @@ def simulate(df, i, liq, tp=0.10, lev=10):
         if hi[k] >= e * (1 + liq):
             return -1.0, "liq", i + 1 + k
         if lo[k] <= e * (1 - tp):
-            return 1.0, "tp", i + 1 + k
+            return tp * lev, "tp", i + 1 + k
     if len(hi) < DAY:
         return None, "aberta", None
     x = df["c"].iat[i + DAY]
@@ -110,6 +111,7 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--top", type=int, default=10)
     p.add_argument("--vol", type=float, default=50_000)
+    p.add_argument("--tp", type=float, default=100, help="alvo em %% da margem (100 = queda de 10%% com 10x)")
     p.add_argument("--liq", type=float, default=9.5)
     p.add_argument("--big", type=float, default=4)
     p.add_argument("--big15", type=float, default=4, help="máx. candle de alta no 15m (últimas 10 velas, x média)")
@@ -152,7 +154,7 @@ def main():
                                           and (a.m15 == 0 or (d["ord15"].iat[i] if a.m15 == 1 else d["below10"].iat[i]))
                                           and (a.brk == 0 or (d["brk"].iat[i] == (a.brk == 1)))):
                     continue
-                pnl, how, j = simulate(d, i, a.liq / 100)
+                pnl, how, j = simulate(d, i, a.liq / 100, tp=a.tp / 1000)
                 if pnl is None:
                     continue
                 fp = funding_pnl(fund, d["t"].iat[i], d["t"].iat[j])

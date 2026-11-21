@@ -24,20 +24,24 @@ H4 = 16  # candles de 15m por candle de 4h
 DAY = 96
 
 
-def features(df, big_x):
-    """Adiciona colunas de regra a um DataFrame de 15m de um ativo."""
+def features(df, big_x, side=1):
+    """Adiciona colunas de regra a um DataFrame de 15m de um ativo.
+
+    side=1: short (regras originais). side=-1: long (todas as desigualdades invertidas).
+    """
+    S = side
     c = df["c"]
     df["ret24"] = c / c.shift(DAY) - 1
     df["vol24"] = (df["v"] * c).rolling(DAY).sum()
 
     # 15m
     ma30 = c.rolling(30).mean()
-    df["ok15"] = (c < ma30) & (ma30 < ma30.shift(10))
+    df["ok15"] = (S * (c - ma30) < 0) & (S * (ma30 - ma30.shift(10)) < 0)
     m5_15, m10_15 = c.rolling(5).mean(), c.rolling(10).mean()
     df["ord15"] = m5_15 < m10_15
     df["below10"] = c < m10_15
     rng15 = (df["h"] - df["l"]) / df["o"]
-    up15 = (df["c"] > df["o"]) & (rng15 > 0) 
+    up15 = (S * (df["c"] - df["o"]) > 0) & (rng15 > 0)
     df["bigup15"] = (rng15.where(up15, 0) / rng15.shift(10).rolling(30).mean()).rolling(10).max()
 
     # 4h a partir do 15m (blocos UTC de 4h), com a vela em formação
@@ -45,7 +49,7 @@ def features(df, big_x):
     g = df.groupby(b)
     full = pd.DataFrame({"o": g["o"].first(), "h": g["h"].max(), "l": g["l"].min(), "c": g["c"].last()})
     full["rng"] = (full["h"] - full["l"]) / full["o"]
-    full["bigup"] = (full["c"] > full["o"]) & (full["rng"] > big_x * full["rng"].shift(10).rolling(30).mean())
+    full["bigup"] = (S * (full["c"] - full["o"]) > 0) & (full["rng"] > big_x * full["rng"].shift(10).rolling(30).mean())
     prev = full.shift(1)  # velas de 4h já fechadas antes do bloco atual
     cs = full["c"].shift(1)
     s4, s9, s29 = (cs.rolling(n).sum() for n in (4, 9, 29))
@@ -59,7 +63,7 @@ def features(df, big_x):
     cur_o = g["o"].transform("first")
     cur_rng = (g["h"].cummax() - g["l"].cummin()) / cur_o
     base = full["rng"].shift(10).rolling(30).mean().reindex(b).to_numpy()
-    cur_big = (c > cur_o) & (cur_rng > big_x * base)
+    cur_big = (S * (c - cur_o) > 0) & (cur_rng > big_x * base)
     full["dn"] = (full["o"] - full["c"]) / full["o"] / full["rng"].shift(10).rolling(30).mean()
     dn_prev = full["dn"].shift(1).rolling(2).max().reindex(b).to_numpy()
     cur_dn = ((cur_o - c) / cur_o) / base
@@ -70,25 +74,27 @@ def features(df, big_x):
     pre = (fm5 < fm10) & (fm10 < fm30) & (fm30 < fm30.shift(10))
     df["pre"] = pre.shift(2).reindex(b).fillna(False).to_numpy()
     df["brk"] = c < low20  # rompeu a mínima das últimas 20 velas de 4h
-    df["ok4"] = (c < ma30_4) & (ma5 < ma10) & (ma10 < ma30_4) & (ma30_4 < m[:, 3]) & (m[:, 4] == 0) & ~cur_big
+    df["ok4"] = (S * (c - ma30_4) < 0) & (S * (ma5 - ma10) < 0) & (S * (ma10 - ma30_4) < 0) & (S * (ma30_4 - m[:, 3]) < 0) & (m[:, 4] == 0) & ~cur_big
     return df
 
 
-def simulate(df, i, liq, tp=0.10, lev=10):
+def simulate(df, i, liq, tp=0.10, lev=10, side=1):
     """tp: queda de preço do alvo (0.10 = 10% = +100% da margem com 10x)."""
     """Resultado (fração da margem) e saída para um short aberto no fechamento do candle i."""
     e = df["c"].iat[i]
     hi = df["h"].to_numpy()[i + 1:i + 1 + DAY]
     lo = df["l"].to_numpy()[i + 1:i + 1 + DAY]
     for k in range(len(hi)):
-        if hi[k] >= e * (1 + liq):
+        adv, fav = (hi[k] >= e * (1 + liq), lo[k] <= e * (1 - tp)) if side == 1 else \
+                   (lo[k] <= e * (1 - liq), hi[k] >= e * (1 + tp))
+        if adv:
             return -1.0, "liq", i + 1 + k
-        if lo[k] <= e * (1 - tp):
+        if fav:
             return tp * lev, "tp", i + 1 + k
     if len(hi) < DAY:
         return None, "aberta", None
     x = df["c"].iat[i + DAY]
-    return max(-1.0, -(x / e - 1) * lev), "tempo", i + DAY
+    return max(-1.0, -side * (x / e - 1) * lev), "tempo", i + DAY
 
 
 def load_funding(symbol):
@@ -99,12 +105,12 @@ def load_funding(symbol):
     return d if len(d) else None
 
 
-def funding_pnl(fund, t0, t1, lev=10):
+def funding_pnl(fund, t0, t1, lev=10, side=1):
     """Soma do funding (fração da margem) entre abertura e saída. Rate > 0: short recebe."""
     if fund is None:
         return 0.0
     m = (fund["t"] > t0) & (fund["t"] <= t1)
-    return float(fund.loc[m, "rate"].sum()) * lev
+    return side * float(fund.loc[m, "rate"].sum()) * lev
 
 
 def main():
@@ -120,19 +126,22 @@ def main():
     p.add_argument("--pre", action="store_true", help="exige tendência de queda no 4h já 2 velas antes")
     p.add_argument("--brk", type=int, default=0, help="1: só rompimento da mínima de 20 velas 4h; 2: só sem rompimento")
     p.add_argument("--bigdn", type=float, default=99, help="máx. queda de vela 4h recente (x amplitude média)")
+    p.add_argument("--gainers", action="store_true", help="universo = melhores de 24h (mantém o lado)")
+    p.add_argument("--long", action="store_true", help="espelha tudo: melhores de 24h, tendência de alta, long")
     a = p.parse_args()
+    side = -1 if a.long else 1
 
     data = {}
     for f in glob.glob(str(ROOT / "data/cache/15m/*.csv")):
         df = pd.read_csv(f)
         if len(df) < 1000:
             continue
-        data[pathlib.Path(f).stem] = features(df.reset_index(drop=True), a.big)
+        data[pathlib.Path(f).stem] = features(df.reset_index(drop=True), a.big, side)
 
     # ranking de 24h por timestamp
     panel = pd.concat([d[["t", "ret24", "vol24"]].assign(s=s) for s, d in data.items()])
     panel = panel.dropna()
-    panel["rank"] = panel.groupby("t")["ret24"].rank(method="first")
+    panel["rank"] = panel.groupby("t")["ret24"].rank(method="first", ascending=not (a.long or a.gainers))
     panel = panel[(panel["rank"] <= a.top) & (panel["vol24"] >= a.vol)]
     cand = panel.set_index(["s", "t"])["rank"]
 
@@ -155,16 +164,16 @@ def main():
                                           and (a.m15 == 0 or (d["ord15"].iat[i] if a.m15 == 1 else d["below10"].iat[i]))
                                           and (a.brk == 0 or (d["brk"].iat[i] == (a.brk == 1)))):
                     continue
-                pnl, how, j = simulate(d, i, a.liq / 100, tp=a.tp / 1000)
+                pnl, how, j = simulate(d, i, a.liq / 100, tp=a.tp / 1000, side=side)
                 if pnl is None:
                     continue
-                fp = funding_pnl(fund, d["t"].iat[i], d["t"].iat[j])
+                fp = funding_pnl(fund, d["t"].iat[i], d["t"].iat[j], side=side)
                 trades[name].append({"s": s, "t": d["t"].iat[i], "rank": r, "pnl_preco": pnl,
                                      "funding": fp, "pnl": max(-1.0, pnl + fp), "saida": how,
                                      "tem_funding": fund is not None})
                 free_at = j
 
-    print(f"top={a.top} vol>={a.vol:,.0f} liq={a.liq}% big={a.big}x | "
+    print(f"{'LONG' if a.long else 'SHORT'} top={a.top} vol>={a.vol:,.0f} liq={a.liq}% big={a.big}x | "
           f"período {pd.to_datetime(panel['t'].min(), unit='ms'):%Y-%m-%d} a "
           f"{pd.to_datetime(panel['t'].max(), unit='ms'):%Y-%m-%d}")
     for name, tr in trades.items():
@@ -183,7 +192,7 @@ def main():
         wk = t.groupby(pd.to_datetime(t["t"], unit="ms").dt.to_period("W"))["pnl"].agg(["count", "mean", "sum"])
         print(wk.round(2).to_string())
         if name == "regra":
-            t.to_csv(ROOT / "data" / "backtest_trades.csv", index=False)
+            t.to_csv(ROOT / "data" / ("backtest_trades_long.csv" if a.long else "backtest_trades.csv"), index=False)
 
 
 if __name__ == "__main__":

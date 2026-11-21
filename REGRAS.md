@@ -21,7 +21,7 @@ Médias = SMA sobre o fechamento (igual ao app da AlphaX): MA5, MA10, MA30.
 7. Sem repique em andamento (preço voltando acima da MA30). Ex.: ZIL.
 
 ## Placar
-13 exemplos (6 ✅, 7 ❌), regra acerta 13/13. Ainda poucos dados.
+19 exemplos (10 ✅, 9 ❌; inclui 5 do scanner), regra acerta os 14 com print. Ainda poucos dados.
 
 ## Reentrada
 - Permitida no mesmo ativo sempre que a configuração continuar válida. O resultado da operação anterior não influencia (MUBARAK).

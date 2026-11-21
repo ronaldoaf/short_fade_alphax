@@ -115,6 +115,7 @@ def main():
     p.add_argument("--liq", type=float, default=9.5)
     p.add_argument("--big", type=float, default=4)
     p.add_argument("--big15", type=float, default=4, help="máx. candle de alta no 15m (últimas 10 velas, x média)")
+    p.add_argument("--no15", action="store_true", help="ignora todas as regras do 15m")
     p.add_argument("--m15", type=int, default=0, help="1: exige MA5<MA10 no 15m; 2: exige preço < MA10 no 15m")
     p.add_argument("--pre", action="store_true", help="exige tendência de queda no 4h já 2 velas antes")
     p.add_argument("--brk", type=int, default=0, help="1: só rompimento da mínima de 20 velas 4h; 2: só sem rompimento")
@@ -148,8 +149,8 @@ def main():
             for i, r in zip(pos, ranks.to_numpy()):
                 if i <= free_at:
                     continue
-                if name == "regra" and not (d["ok4"].iat[i] and d["ok15"].iat[i] and d["bigdn"].iat[i] <= a.bigdn
-                                          and d["bigup15"].iat[i] <= a.big15
+                if name == "regra" and not (d["ok4"].iat[i] and (a.no15 or d["ok15"].iat[i]) and d["bigdn"].iat[i] <= a.bigdn
+                                          and (a.no15 or d["bigup15"].iat[i] <= a.big15)
                                           and (not a.pre or d["pre"].iat[i])
                                           and (a.m15 == 0 or (d["ord15"].iat[i] if a.m15 == 1 else d["below10"].iat[i]))
                                           and (a.brk == 0 or (d["brk"].iat[i] == (a.brk == 1)))):

@@ -40,3 +40,4 @@ Médias = SMA sobre o fechamento (igual ao app da AlphaX): MA5, MA10, MA30.
 
 ## Uso do scanner
 - Coluna `agora` reavalia com o candle de 15m em formação (exige também MA5 < MA10). Confirme no gráfico antes de entrar: o sinal pode mudar dentro do candle.
+- Sem nenhuma regra do 15m (`--no15`): +10,0% → +6,6% por trade, liquidações 26% → 30%. Com top 5: +14,5% → +8,3%. **O 15m é necessário.**

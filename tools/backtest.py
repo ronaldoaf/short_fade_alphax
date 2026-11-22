@@ -39,6 +39,7 @@ def features(df, big_x, side=1):
     df["ok15"] = (S * (c - ma30) < 0) & (S * (ma30 - ma30.shift(10)) < 0)
     m5_15, m10_15 = c.rolling(5).mean(), c.rolling(10).mean()
     df["ord15"] = m5_15 < m10_15
+    df["dist15"] = -S * (c / ma30 - 1)  # quanto o preço está esticado a favor (fração), p/ short = abaixo da MA30
     df["below10"] = c < m10_15
     rng15 = (df["h"] - df["l"]) / df["o"]
     up15 = (S * (df["c"] - df["o"]) > 0) & (rng15 > 0)
@@ -128,6 +129,7 @@ def main():
     p.add_argument("--liq", type=float, default=9.5)
     p.add_argument("--big", type=float, default=4)
     p.add_argument("--big15", type=float, default=4, help="máx. candle de alta no 15m (últimas 10 velas, x média)")
+    p.add_argument("--maxdist15", type=float, default=999, help="máx. %% do preço abaixo da MA30 do 15m")
     p.add_argument("--no15", action="store_true", help="ignora todas as regras do 15m")
     p.add_argument("--m15", type=int, default=0, help="1: exige MA5<MA10 no 15m; 2: exige preço < MA10 no 15m")
     p.add_argument("--pre", action="store_true", help="exige tendência de queda no 4h já 2 velas antes")
@@ -168,6 +170,7 @@ def main():
                 if name == "regra" and not (d["ok4"].iat[i] and (a.no15 or d["ok15"].iat[i]) and d["bigdn"].iat[i] <= a.bigdn
                                           and (a.no15 or d["bigup15"].iat[i] <= a.big15)
                                           and (not a.pre or d["pre"].iat[i])
+                                          and d["dist15"].iat[i] <= a.maxdist15 / 100
                                           and (a.m15 == 0 or (d["ord15"].iat[i] if a.m15 == 1 else d["below10"].iat[i]))
                                           and (a.brk == 0 or (d["brk"].iat[i] == (a.brk == 1)))):
                     continue

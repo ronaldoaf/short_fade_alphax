@@ -42,6 +42,7 @@ Ressalva: só ~1 mês de dados, período de mercado em queda.
 - Remover o 15m (`--no15`): piora muito (+10,0% → +6,6%).
 - Alvos de 125% a 200% (`--tp`): resultado total parecido; mantido 100%.
 - Funding: impacto médio desprezível (< 0,2% da margem), mas casos extremos de até -30%.
+- Preço muito esticado abaixo da MA30 do 15m (`--maxdist15`, ex.: queda repentina do ACE −31%, AKE −24%; ✅ sempre ≤ 8%): casos raros (~1%), sem efeito no resultado (+10,0% → +10,3% com limite de 20%). Pode ser usado como filtro discricionário sem custo.
 - Versão long espelhada (`--long`): perde (-11,6%/trade).
 
 ## Ferramentas

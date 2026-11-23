@@ -67,3 +67,14 @@ Conclusão: diferenças de média dentro do ruído; stop/trailing reduzem muito 
 | Só ranking | 20703 | −0,1% | ≈ −1,1% |
 Meses alternam entre positivos e negativos. Funding na Binance custa −1,0%/trade em média (na AlphaX ~0).
 Na Binance a vantagem da regra é pequena e some com taxas; na AlphaX (0 taxas, outro universo) foi +10%/trade em 1 mês.
+
+## Comparação com o backtest do outro agente (`outro_agente/`)
+- Simuladores concordam: nas 640 operações idênticas (mesmo ativo e horário) as saídas batem, exceto onde ele usa stop de 1 ATR.
+- Preços AlphaX = Binance: as 466 operações do backtest AlphaX repetidas com candles da Binance dão +10,6% (AlphaX +10,0%).
+- Diferenças são de definição, não de dados nem de bug:
+  1. Universo do ranking: ele ranqueia só 315 criptos da AlphaX com par na Binance; eu, todos os 893 da Binance (ou 969 da AlphaX, com ações).
+  2. Avaliação a cada hora (ele) x a cada 15m (eu).
+  3. Ele adiciona stop de 1 ATR do 4h; a estratégia original não tem stop.
+  4. Taxa 0,05%/lado no cenário principal dele (−1%/trade).
+- Último mês (22/10–21/11) no backtest dele: +2,7%/trade com taxa, +3,7% sem — positivo.
+- 12 meses, taxa zero: ele +0,5%/trade; eu (Binance, todos ativos) +0,4%. Conclusão comum: **vantagem pequena, perto de zero ao longo de um ano**; o +10% em 1 mês de AlphaX foi um período favorável.

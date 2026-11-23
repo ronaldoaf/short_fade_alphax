@@ -78,3 +78,22 @@ Na Binance a vantagem da regra é pequena e some com taxas; na AlphaX (0 taxas, 
   4. Taxa 0,05%/lado no cenário principal dele (−1%/trade).
 - Último mês (22/10–21/11) no backtest dele: +2,7%/trade com taxa, +3,7% sem — positivo.
 - 12 meses, taxa zero: ele +0,5%/trade; eu (Binance, todos ativos) +0,4%. Conclusão comum: **vantagem pequena, perto de zero ao longo de um ano**; o +10% em 1 mês de AlphaX foi um período favorável.
+
+## Otimização com Binance (jan/2023–nov/2026): treino / validação / teste (`tools/opt.py`)
+Treino jan/23–jun/24 · Validação jul/24–jun/25 · Teste jul/25–nov/26 (avaliado uma única vez).
+Custos: funding real + taxa 0 (AlphaX) ou 0,05%/lado.
+
+**Regra candidata (C6)** — mudanças em relação à atual:
+- Universo: só os **3 piores** de 24h (era 10). Volume mínimo não fez diferença na Binance.
+- 15m: exigir **MA5 < MA10** e preço no máximo **20% abaixo da MA30**.
+- Filtros de candle de alta grande (4h e 15m): sem efeito → removidos.
+- Saída: alvo **−15%** no preço (+150% da margem), **stop em 1 ATR(14) do 4h**, tempo máximo **48h**.
+
+| Período | Atual (taxa 0) | C6 (taxa 0) | C6 (taxa 0,05%) |
+|---|---|---|---|
+| Treino | −1,3% (5595) | +4,8% (1764) | +3,8% |
+| Validação | +2,6% (5039) | +4,7% (1696) | +3,8% |
+| Teste | +0,4% (8356) | **+3,1% (2924)** | **+2,3%** |
+Meses positivos C6: treino 10/18, validação 7/12, teste 9/17. Pior drawdown: −57 margens (soma de todos os trades).
+Vizinhos (alvo 10–20%, top 3–5, 24–48h, stop 1 ATR) também positivos em treino e validação.
+Ressalvas: resultado depende de poucos meses fortes; quando o ATR passa de 9,5% o stop vira liquidação.

@@ -204,11 +204,11 @@ class Engine:
 
 def stats(t):
     if t.empty:
-        return dict(n=0, media=np.nan, soma=0, tp=0, liq=0)
+        return dict(n=0, media=np.nan, soma=0)
     sx = t["saida"].value_counts(normalize=True)
     return dict(n=len(t), media=round(t["pnl"].mean() * 100, 2), soma=round(t["pnl"].sum(), 1),
-                tp=round(sx.get(0, 0) * 100), stop=round(sx.get(1, 0) * 100), liq=round(sx.get(2, 0) * 100),
-                tempo=round(sx.get(3, 0) * 100))
+                pct_tp=round(sx.get(0, 0) * 100), pct_stop=round(sx.get(1, 0) * 100),
+                pct_liq=round(sx.get(2, 0) * 100), pct_tempo=round(sx.get(3, 0) * 100))
 
 
 BASE = dict(top=10, vmin=50_000, big4=4, big15=4, maxdist=9, ord15=0, tp=0.10, sl=0, sl_atr=0, hold=DAY)
@@ -243,11 +243,11 @@ def cmd_exit(E, entries, out):
     print(r.sort_values("media", ascending=False).head(25).to_string(index=False))
 
 
-def cmd_eval(E, cfgs, fee):
+def cmd_eval(E, cfgs, fee, periods=tuple(SPLITS)):
     rows = []
     for name, cfg in cfgs.items():
         cfg = {**BASE, **cfg}
-        for per in SPLITS:
+        for per in periods:
             rows.append({"config": name, "periodo": per, **stats(E.run(cfg, per, fee))})
     print(pd.DataFrame(rows).to_string(index=False))
 
@@ -257,6 +257,7 @@ def main():
     p.add_argument("cmd", choices=["prep", "entry", "exit", "eval"])
     p.add_argument("--cfg", default=None, help='JSON {"nome": {param: valor}}')
     p.add_argument("--fee", type=float, default=0.0, help="taxa por lado em fração (0.0005 = 0,05%%)")
+    p.add_argument("--periods", default="treino,validacao,teste")
     p.add_argument("--vmins", default="50000,500000,2000000")
     a = p.parse_args()
     if a.cmd == "prep":
@@ -269,7 +270,7 @@ def main():
         ent = json.loads(a.cfg)
         cmd_exit(E, ent if isinstance(ent, list) else [ent], ROOT / "data/opt_exit.csv")
     else:
-        cmd_eval(E, json.loads(a.cfg) if a.cfg else {"base": {}}, a.fee)
+        cmd_eval(E, json.loads(a.cfg) if a.cfg else {"base": {}}, a.fee, a.periods.split(","))
 
 
 if __name__ == "__main__":

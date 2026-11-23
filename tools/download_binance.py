@@ -64,9 +64,9 @@ def months(a, b):
 
 def fetch(sym, mons, days):
     p = OUT / "15m" / f"{sym}.csv.gz"
-    if p.exists():
-        return sym, -1
-    parts = []
+    parts = [pd.read_csv(p)] if p.exists() else []
+    if parts and parts[0]["t"].min() <= pd.Timestamp(mons[0] + "-01").value // 10**6:
+        return sym, -1  # já cobre o período
     for mo in mons:
         raw = get(f"{DATA}data/futures/um/monthly/klines/{sym}/15m/{sym}-15m-{mo}.zip")
         if raw:
@@ -76,15 +76,16 @@ def fetch(sym, mons, days):
         if raw:
             parts.append(read_zip(raw, COLS))
     if parts:
-        df = pd.concat(parts).drop_duplicates("t").sort_values("t")
+        df = pd.concat([x[["t", "o", "h", "l", "c", "v"]] for x in parts]).drop_duplicates("t").sort_values("t")
         df[["t", "o", "h", "l", "c", "v"]].to_csv(p, index=False, compression="gzip")
-    fr = []
+    fp = OUT / "funding" / f"{sym}.csv"
+    fr = [pd.read_csv(fp)] if fp.exists() else []
     for mo in mons:
         raw = get(f"{DATA}data/futures/um/monthly/fundingRate/{sym}/{sym}-fundingRate-{mo}.zip")
         if raw:
             fr.append(read_zip(raw, ["t", "interval", "rate"]))
     if fr:
-        f = pd.concat(fr).drop_duplicates("t").sort_values("t")
+        f = pd.concat([x[["t", "rate"]] for x in fr]).drop_duplicates("t").sort_values("t")
         f[["t", "rate"]].to_csv(OUT / "funding" / f"{sym}.csv", index=False)
     return sym, sum(len(x) for x in parts)
 

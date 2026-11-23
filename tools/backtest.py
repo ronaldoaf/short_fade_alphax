@@ -160,7 +160,10 @@ def main():
         if a.src == "binance":
             df["v"] = df["v"] / df["c"]  # arquivo traz volume em USDT; features() espera volume base
         name = pathlib.Path(f).name.split(".")[0]
-        data[name] = features(df.reset_index(drop=True), a.big, side)
+        f = features(df.reset_index(drop=True), a.big, side)
+        keep = ["t", "h", "l", "c", "ret24", "vol24", "ok4", "ok15", "bigup15", "bigdn",
+                "pre", "ord15", "below10", "brk", "dist15"]
+        data[name] = f[keep].copy()  # economiza memória com 1 ano de dados
 
     # ranking de 24h por timestamp
     panel = pd.concat([d[["t", "ret24", "vol24"]].assign(s=s) for s, d in data.items()])

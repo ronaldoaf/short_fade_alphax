@@ -101,3 +101,8 @@ Ressalvas: resultado depende de poucos meses fortes; quando o ATR passa de 9,5% 
 ### Filtro de mercado (BTC/ETH) — testado e descartado
 Testados sobre a C6: BTC/ETH abaixo da MA30 do 4h, da MA20 e MA50 diárias, queda em 24h e 7 dias, ambos/algum, e amplitude (% de ativos caindo).
 Nenhum melhorou treino **e** validação. O efeito troca de sinal entre os períodos (ex.: BTC abaixo da MA30 4h: treino +3,0% vs +9,2% com mercado em alta; validação +6,5% vs +1,7%). Sem filtro de mercado.
+
+### Filtro com índice cripto (30 maiores por volume spot, pesos iguais, rebalanceio semanal)
+No treino e na validação, operar só com o índice abaixo da MA20 diária melhorou (C6 +4,8%→+6,3% e +4,7%→+6,1%).
+**No teste falhou: +3,1% → −0,9%** (com taxa 0,05%: +2,3% → −1,6%). O filtro não generaliza → descartado.
+Conclusão geral: nenhum filtro de regime de mercado (BTC, ETH ou índice) se mostrou estável.

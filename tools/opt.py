@@ -171,8 +171,41 @@ class Engine:
                                           **{k: a[k][ii] for k in ("big4", "big15", "ord15", "dist15", "atr4")}}))
             self.cand[vmin] = pd.concat(rows).sort_values(["j", "i"]).reset_index(drop=True)
 
+    def regimes(self):
+        """Filtros de mercado (True = mercado em baixa), no grid global de 15m."""
+        if hasattr(self, "_reg"):
+            return self._reg
+        P, T = self.P, self.P["R"].shape[0]
+        def glob_c(sym):
+            j = P["names"].index(sym)
+            c = np.full(T, np.nan)
+            a = P["arrs"][sym]["c"]
+            c[P["offs"][j]:P["offs"][j] + len(a)] = a
+            return pd.Series(c).ffill()
+        btc, eth = glob_c("BTCUSDT"), glob_c("ETHUSDT")
+        r = {}
+        for nm, c in (("btc", btc), ("eth", eth)):
+            r[nm + "_4h"] = (c < c.rolling(480).mean()).to_numpy()          # abaixo da MA30 do 4h
+            r[nm + "_d20"] = (c < c.rolling(1920).mean()).to_numpy()        # abaixo da MA20 diária
+            r[nm + "_d50"] = (c < c.rolling(4800).mean()).to_numpy()        # abaixo da MA50 diária
+            r[nm + "_24h"] = (c < c.shift(96)).to_numpy()                   # caiu nas últimas 24h
+            r[nm + "_7d"] = (c < c.shift(672)).to_numpy()                   # caiu nos últimos 7 dias
+        r["ambos_4h"] = r["btc_4h"] & r["eth_4h"]
+        r["ambos_d20"] = r["btc_d20"] & r["eth_d20"]
+        r["algum_4h"] = r["btc_4h"] | r["eth_4h"]
+        # amplitude: % dos ativos com retorno de 24h negativo
+        R = P["R"]
+        frac = np.nanmean(np.where(np.isnan(R), np.nan, R < 0), axis=1)
+        r["amplitude60"] = frac > 0.6
+        r["amplitude50"] = frac > 0.5
+        self._reg = r
+        return r
+
     def run(self, cfg, period=None, fee=0.0):
         c = self.cand[cfg.get("vmin", 50_000)]
+        if cfg.get("regime"):
+            reg = self.regimes()[cfg["regime"]]
+            c = c[reg[c["t"].to_numpy()]]
         m = ((c["rank"] <= cfg.get("top", 10)) & (c["big4"].fillna(0) <= cfg.get("big4", 4))
              & (c["big15"].fillna(0) <= cfg.get("big15", 4)) & (c["dist15"] <= cfg.get("maxdist", 9)))
         if cfg.get("ord15"):

@@ -97,3 +97,7 @@ Custos: funding real + taxa 0 (AlphaX) ou 0,05%/lado.
 Meses positivos C6: treino 10/18, validação 7/12, teste 9/17. Pior drawdown: −57 margens (soma de todos os trades).
 Vizinhos (alvo 10–20%, top 3–5, 24–48h, stop 1 ATR) também positivos em treino e validação.
 Ressalvas: resultado depende de poucos meses fortes; quando o ATR passa de 9,5% o stop vira liquidação.
+
+### Filtro de mercado (BTC/ETH) — testado e descartado
+Testados sobre a C6: BTC/ETH abaixo da MA30 do 4h, da MA20 e MA50 diárias, queda em 24h e 7 dias, ambos/algum, e amplitude (% de ativos caindo).
+Nenhum melhorou treino **e** validação. O efeito troca de sinal entre os períodos (ex.: BTC abaixo da MA30 4h: treino +3,0% vs +9,2% com mercado em alta; validação +6,5% vs +1,7%). Sem filtro de mercado.

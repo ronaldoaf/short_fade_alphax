@@ -1,7 +1,7 @@
 # Estratégia Short Fade AlphaX
 
 > **Regra em uso: C6** (adotada no scanner em 23/11/2026). Resumo:
-> 3 piores de 24h (vol ≥ 50k) · 4h: preço < MA30, MA5 < MA10 < MA30, MA30 caindo ·
+> 5 piores de 24h (vol ≥ 50k; top 5 adotado em 23/11 — teste +2,7%/trade vs +3,1% no top 3, com ~50% mais trades) · 4h: preço < MA30, MA5 < MA10 < MA30, MA30 caindo ·
 > 15m: preço < MA30, MA30 caindo, MA5 < MA10, no máx. 20% abaixo da MA30 ·
 > short 10x, alvo −15%, stop 1 ATR(14) do 4h, saída em 48h. Sem filtro de mercado.
 > As seções abaixo documentam a regra original (v1) e o histórico de testes.

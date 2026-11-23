@@ -1,12 +1,12 @@
 """Scanner ao vivo da regra C6 na AlphaX.
 
 Regra C6 (otimizada com treino/validação/teste em dados da Binance, ver REGRAS.md):
-  Universo : 3 piores retornos de 24h com volume 24h >= 50.000 USDT
+  Universo : 5 piores retornos de 24h com volume 24h >= 50.000 USDT
   4h       : preço < MA30, MA5 < MA10 < MA30, MA30 caindo (vs 10 velas atrás)
   15m      : preço < MA30, MA30 caindo (vs 10 velas atrás), MA5 < MA10, preço no máx. 20% abaixo da MA30
   Saída    : short 10x isolado; alvo -15% no preço; stop = entrada + 1 ATR(14) do 4h; tempo máximo 48h
 
-Uso: python tools/scan.py [--top 3] [--show 10] [--vol 50000]
+Uso: python tools/scan.py [--top 5] [--show 10] [--vol 50000]
   --show mostra mais posições do ranking para contexto (só as --top primeiras podem dar sinal).
 """
 import argparse, pathlib, sys, time
@@ -40,7 +40,7 @@ def evaluate(sym):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--top", type=int, default=3)
+    p.add_argument("--top", type=int, default=5)
     p.add_argument("--show", type=int, default=10)
     p.add_argument("--vol", type=float, default=50_000)
     a = p.parse_args()

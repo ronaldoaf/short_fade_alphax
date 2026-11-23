@@ -22,6 +22,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 BAR = 15 * 60 * 1000
 H4 = 16  # candles de 15m por candle de 4h
 DAY = 96
+LEV_FEE = 10
 
 
 def features(df, big_x, side=1):
@@ -105,8 +106,11 @@ def simulate(df, i, liq, tp=0.10, lev=10, side=1):
     return max(-1.0, -side * (x / e - 1) * lev), "tempo", i + DAY
 
 
+FUND_DIR = ROOT / "data/cache/funding"
+
+
 def load_funding(symbol):
-    f = ROOT / "data/cache/funding" / f"{symbol}.csv"
+    f = FUND_DIR / f"{symbol}.csv"
     if not f.exists():
         return None
     d = pd.read_csv(f)
@@ -136,16 +140,27 @@ def main():
     p.add_argument("--brk", type=int, default=0, help="1: só rompimento da mínima de 20 velas 4h; 2: só sem rompimento")
     p.add_argument("--bigdn", type=float, default=99, help="máx. queda de vela 4h recente (x amplitude média)")
     p.add_argument("--gainers", action="store_true", help="universo = melhores de 24h (mantém o lado)")
+    p.add_argument("--src", default="alphax", choices=["alphax", "binance"])
+    p.add_argument("--fee", type=float, default=0.0, help="taxa por lado em %% do nocional (Binance taker ~0.05)")
     p.add_argument("--long", action="store_true", help="espelha tudo: melhores de 24h, tendência de alta, long")
     a = p.parse_args()
     side = -1 if a.long else 1
 
+    global FUND_DIR
     data = {}
-    for f in glob.glob(str(ROOT / "data/cache/15m/*.csv")):
+    if a.src == "binance":
+        FUND_DIR = ROOT / "data/cache/binance/funding"
+        files = glob.glob(str(ROOT / "data/cache/binance/15m/*.csv.gz"))
+    else:
+        files = glob.glob(str(ROOT / "data/cache/15m/*.csv"))
+    for f in files:
         df = pd.read_csv(f)
         if len(df) < 1000:
             continue
-        data[pathlib.Path(f).stem] = features(df.reset_index(drop=True), a.big, side)
+        if a.src == "binance":
+            df["v"] = df["v"] / df["c"]  # arquivo traz volume em USDT; features() espera volume base
+        name = pathlib.Path(f).name.split(".")[0]
+        data[name] = features(df.reset_index(drop=True), a.big, side)
 
     # ranking de 24h por timestamp
     panel = pd.concat([d[["t", "ret24", "vol24"]].assign(s=s) for s, d in data.items()])
@@ -178,8 +193,9 @@ def main():
                 if pnl is None:
                     continue
                 fp = funding_pnl(fund, d["t"].iat[i], d["t"].iat[j], side=side)
+                fee = a.fee / 100 * 2 * LEV_FEE
                 trades[name].append({"s": s, "t": d["t"].iat[i], "rank": r, "pnl_preco": pnl,
-                                     "funding": fp, "pnl": max(-1.0, pnl + fp), "saida": how,
+                                     "funding": fp, "pnl": max(-1.0, pnl + fp - fee), "saida": how,
                                      "tem_funding": fund is not None})
                 free_at = j
 
@@ -199,10 +215,11 @@ def main():
         print(f"   sem funding {t['pnl_preco'].mean():+.1%} | funding médio {t['funding'].mean():+.2%}"
               f" (pior {t['funding'].min():+.1%}) | trades com dado de funding: {t['tem_funding'].mean():.0%}")
         t["dia"] = pd.to_datetime(t["t"], unit="ms").dt.strftime("%m-%d")
-        wk = t.groupby(pd.to_datetime(t["t"], unit="ms").dt.to_period("W"))["pnl"].agg(["count", "mean", "sum"])
+        per = "M" if (t["t"].max() - t["t"].min()) > 60 * 86_400_000 else "W"
+        wk = t.groupby(pd.to_datetime(t["t"], unit="ms").dt.to_period(per))["pnl"].agg(["count", "mean", "sum"])
         print(wk.round(2).to_string())
         if name == "regra":
-            t.to_csv(ROOT / "data" / ("backtest_trades_long.csv" if a.long else "backtest_trades.csv"), index=False)
+            t.to_csv(ROOT / "data" / f"backtest_trades{'_long' if a.long else ''}{'_binance' if a.src == 'binance' else ''}.csv", index=False)
 
 
 if __name__ == "__main__":

@@ -59,3 +59,11 @@ Ressalva: só ~1 mês de dados, período de mercado em queda.
 | Trailing fixo 5% sem alvo | 702 | +10,0% | +70 | 0% |
 | Sem alvo, 48h | 301 | +26,4% | +80 | 29% |
 Conclusão: diferenças de média dentro do ruído; stop/trailing reduzem muito as liquidações. Nenhuma mudança adotada ainda.
+
+## Validação com dados da Binance (1 ano, 893 perpétuos, nov/2025 a nov/2026)
+| | Trades | Média/trade (sem taxa) | Com taxa 0,05%/lado |
+|---|---|---|---|
+| Regra (top 10) | 6622 | +1,3% | ≈ +0,3% |
+| Só ranking | 20703 | −0,1% | ≈ −1,1% |
+Meses alternam entre positivos e negativos. Funding na Binance custa −1,0%/trade em média (na AlphaX ~0).
+Na Binance a vantagem da regra é pequena e some com taxas; na AlphaX (0 taxas, outro universo) foi +10%/trade em 1 mês.

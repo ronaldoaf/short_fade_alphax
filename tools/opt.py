@@ -114,6 +114,71 @@ def cmd_prep():
     print("ok", len(names), "ativos,", T, "candles")
 
 
+# ---------------------------------------------------------------- índice cripto
+EXCLUIR = {"USDC", "FDUSD", "TUSD", "BUSD", "DAI", "USDP", "PAX", "USDS", "USDSB", "UST", "USTC", "EUR", "GBP",
+           "AUD", "TRY", "BRL", "AEUR", "EURI", "USDE", "USD1", "RLUSD", "PYUSD", "XUSD", "BFUSD", "U", "SUSD",
+           "PAXG", "XAUT", "WBTC", "WBETH", "BETH", "BKRW", "BIDR", "IDRT", "BVND", "NGN", "RUB", "UAH", "ZAR"}
+
+
+def crypto_index(P, n=30, weeks=8):
+    """Índice de pesos iguais das n criptos com maior volume spot (Binance) nas `weeks` semanas anteriores.
+
+    Rebalanceado toda segunda-feira 00:00 UTC; BTC e ETH sempre incluídos; sem stablecoins, ouro, wrapped e
+    tokens alavancados. Preços: fechamentos de 15m dos perpétuos (mesmo grid do backtest).
+    Retorna o nível do índice no grid global (array), ou None se não houver dados de volume spot.
+    """
+    f = B / "spot_1d.csv.gz"
+    if not f.exists():
+        return None
+    sp = pd.read_csv(f)
+    sp = sp[~sp["sym"].isin(EXCLUIR) & ~sp["sym"].str.contains(r"(UP|DOWN|BULL|BEAR)$")]
+    vol = sp.pivot_table(index="t", columns="sym", values="qv", aggfunc="sum").sort_index()
+    vol.index = pd.to_datetime(vol.index, unit="ms")
+    vol = vol.asfreq("D").fillna(0)
+    roll = vol.rolling(7 * weeks, min_periods=7 * weeks).sum().shift(1)  # só dias anteriores
+    fut = {}
+    for name in P["names"]:
+        base = name[:-4]
+        for pre in ("1000000", "1000"):
+            if base.startswith(pre):
+                base = base[len(pre):]
+        fut.setdefault(base, name)
+    T = P["R"].shape[0]
+    ts = pd.to_datetime(P["tmin"] + np.arange(T, dtype=np.int64) * BAR, unit="ms")
+    cache = {}
+
+    def ret(name):
+        if name not in cache:
+            j = P["names"].index(name)
+            c = np.full(T, np.nan)
+            a = P["arrs"][name]["c"]
+            c[P["offs"][j]:P["offs"][j] + len(a)] = a
+            cache[name] = pd.Series(c).pct_change(fill_method=None).to_numpy()
+        return cache[name]
+
+    r = np.full(T, np.nan)
+    mondays = pd.date_range(ts[0].normalize() - pd.Timedelta(days=ts[0].weekday()), ts[-1], freq="W-MON")
+    members = []
+    for k, d in enumerate(mondays):
+        if d not in roll.index or roll.loc[d].isna().all():
+            continue
+        rank = roll.loc[d].dropna().sort_values(ascending=False)
+        top = [s for s in rank.index if s in fut][:n]
+        for must in ("BTC", "ETH"):
+            if must not in top and must in fut:
+                top = top[:-1] + [must] if len(top) >= n else top + [must]
+        members.append((d, top))
+        a = np.searchsorted(ts.values, d.to_datetime64())
+        b = np.searchsorted(ts.values, (mondays[k + 1] if k + 1 < len(mondays) else ts[-1] + pd.Timedelta("1D")).to_datetime64())
+        M = np.column_stack([ret(fut[s])[a:b] for s in top])
+        with np.errstate(all="ignore"):
+            r[a:b] = np.nanmean(M, axis=1)
+    lvl = np.cumprod(1 + np.nan_to_num(r))
+    lvl[np.isnan(r)] = np.nan
+    crypto_index.members = members
+    return pd.Series(lvl).ffill().to_numpy()
+
+
 # ---------------------------------------------------------------- simulação
 @njit(cache=True)
 def sim_one(h, l, c, i, tp, sl, hold):
@@ -198,6 +263,15 @@ class Engine:
         frac = np.nanmean(np.where(np.isnan(R), np.nan, R < 0), axis=1)
         r["amplitude60"] = frac > 0.6
         r["amplitude50"] = frac > 0.5
+        lvl = crypto_index(P)
+        if lvl is not None:
+            c = pd.Series(lvl)
+            r["idx_4h"] = (c < c.rolling(480).mean()).to_numpy()
+            r["idx_d20"] = (c < c.rolling(1920).mean()).to_numpy()
+            r["idx_d50"] = (c < c.rolling(4800).mean()).to_numpy()
+            r["idx_24h"] = (c < c.shift(96)).to_numpy()
+            r["idx_7d"] = (c < c.shift(672)).to_numpy()
+            self.index_level = lvl
         self._reg = r
         return r
 

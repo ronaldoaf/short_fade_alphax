@@ -198,3 +198,4 @@ Top 5 + vol baixa, taxa 0 (treino / validação / teste): C6 +8,4% / +12,9% / +4
 
 ### MA30 caindo comparando com 5 períodos atrás (`LAG=5 python tools/opt_lag.py`)
 Top 5 + vol baixa, taxa 0 (treino / validação / teste): C6 (10) +8,4% / +12,9% / +4,8% · 5 no 4h +7,0% / +13,2% / +3,8% · 5 no 15m +8,1% / +12,5% / +3,6% · 5 nos dois +7,0% / +13,2% / +2,7%. Mantido 10.
+Com 15 períodos (`LAG=15`): 15 no 4h +7,9% / +11,3% / +2,6% · 15 no 15m +8,1% / +12,9% / +4,5% · 15 nos dois +7,5% / +11,1% / +2,7%. 10 é o melhor ponto; mantido.

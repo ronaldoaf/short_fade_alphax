@@ -1,5 +1,5 @@
-"""C6 trocando a MA30 por MA25 (no 4h, no 15m e nos dois). Top 5 e 10, com e sem filtro de volatilidade.
-Uso: python tools/opt_ma25.py
+"""C6 trocando a MA30 por outra média (MA=25 padrão; ex.: MA=35) no 4h, no 15m e nos dois.
+Uso: MA=35 python tools/opt_ma25.py
 """
 import pathlib, sys
 import numpy as np, pandas as pd
@@ -28,7 +28,9 @@ def main():
     P = opt.load()
     off = np.array(P["offs"])
     low = None
-    variantes = {"MA30 (atual)": (30, 30), "MA25 só no 4h": (25, 30), "MA25 só no 15m": (30, 25), "MA25 nos dois": (25, 25)}
+    import os
+    L = int(os.environ.get("MA", 25))
+    variantes = {"MA30 (atual)": (30, 30), f"MA{L} só no 4h": (L, 30), f"MA{L} só no 15m": (30, L), f"MA{L} nos dois": (L, L)}
     res = {0: [], 0.0005: []}
     for nm, (n4, n15) in variantes.items():
         for j, s in enumerate(P["names"]):

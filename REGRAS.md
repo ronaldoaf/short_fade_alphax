@@ -176,3 +176,11 @@ Top 5 + vol baixa, taxa 0 (treino / validação / teste):
 - MA25 só no 15m: +8,7% / +12,2% / +4,1%
 - MA25 nos dois: +6,6% / +13,0% / +4,6%
 Sem ganho; diferenças dentro do ruído. Mantida a MA30.
+
+### MA35 no lugar da MA30 (`MA=35 python tools/opt_ma25.py`)
+Top 5 + vol baixa, taxa 0 (treino / validação / teste):
+- MA30 (atual): +8,4% / +12,9% / +4,8%
+- MA35 só no 4h: +8,1% / +11,3% / +3,4%
+- MA35 só no 15m: +7,8% / +12,1% / +5,8%
+- MA35 nos dois: +7,4% / +11,0% / +4,0%
+MA30 é o melhor ponto em treino+validação (25 e 35 são vizinhos piores). Mantida a MA30.

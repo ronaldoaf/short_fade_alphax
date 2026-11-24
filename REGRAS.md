@@ -114,3 +114,17 @@ Nenhum melhorou treino **e** validação. O efeito troca de sinal entre os perí
 No treino e na validação, operar só com o índice abaixo da MA20 diária melhorou (C6 +4,8%→+6,3% e +4,7%→+6,1%).
 **No teste falhou: +3,1% → −0,9%** (com taxa 0,05%: +2,3% → −1,6%). O filtro não generaliza → descartado.
 Conclusão geral: nenhum filtro de regime de mercado (BTC, ETH ou índice) se mostrou estável.
+
+### Filtro de volatilidade do índice cripto (`tools/vol_regime.py`) — APROVADO no teste
+Volatilidade = desvio-padrão dos retornos de 15m do índice (30 maiores, pesos iguais) numa janela; limiar = mediana móvel dos últimos 90 dias (sem olhar o futuro).
+Operar **só quando a volatilidade de 7 dias do índice está ABAIXO da mediana de 90 dias** (~49% do tempo).
+
+| C6 top 5, taxa 0 | Treino | Validação | Teste |
+|---|---|---|---|
+| Sem filtro | +1,9% (2735) | +3,8% (2609) | +2,7% (4419) |
+| Vol 7d baixa | **+8,3%** (1439) | **+12,8%** (1329) | **+4,7%** (2193) |
+| Vizinho vol 3d baixa | +6,8% | +9,5% | +6,7% |
+| Vizinho vol 1d baixa | +9,2% | +6,9% | +5,6% |
+Com taxa 0,05%: teste +1,9% → +3,9%/trade. Soma no teste parecida (+85 nos dois), com metade dos trades.
+Meses positivos: treino 9/16, validação 10/12, teste 11/14. Pior drawdown −46 margens (sem filtro −57 no top 3).
+Escolha feita em treino+validação (efeito consistente em todas as janelas com mediana de 90d); teste rodado uma vez.

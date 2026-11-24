@@ -150,3 +150,13 @@ Pesos iguais, sem stablecoins, composição aproximada por semestre (sem histór
 | Top 10, vol baixa, 30 por volume | +7,8% | +10,9% | +2,6% |
 | Top 10, vol baixa, 10 por mkt cap | +8,3% | +7,9% | +4,0% |
 Resultados equivalentes (o filtro é robusto à escolha do índice). Mantido o índice de 30 por volume.
+
+### Índice alternativo: 10 maiores por volume spot (`tools/vol_top10.py`)
+Mesma construção do índice de 30 (8 semanas, rebalanceio semanal), com n=10.
+| C6, taxa 0 | Treino | Validação | Teste |
+|---|---|---|---|
+| Top 5, vol baixa, 30 por volume | +8,4% | +12,9% | +4,8% |
+| Top 5, vol baixa, 10 por volume | +10,0% | +10,5% | +5,4% |
+| Top 10, vol baixa, 30 por volume | +7,8% | +10,9% | +2,6% |
+| Top 10, vol baixa, 10 por volume | +9,3% | +8,8% | +2,4% |
+Equivalentes dentro do ruído. Mantido o índice de 30.

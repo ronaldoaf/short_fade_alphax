@@ -128,3 +128,13 @@ Operar **só quando a volatilidade de 7 dias do índice está ABAIXO da mediana 
 Com taxa 0,05%: teste +1,9% → +3,9%/trade. Soma no teste parecida (+85 nos dois), com metade dos trades.
 Meses positivos: treino 9/16, validação 10/12, teste 11/14. Pior drawdown −46 margens (sem filtro −57 no top 3).
 Escolha feita em treino+validação (efeito consistente em todas as janelas com mediana de 90d); teste rodado uma vez.
+
+### Long espelhado da C6 (`tools/opt_long.py`) — sem vantagem
+Melhores de 24h, tendência de alta no 4h e 15m, alvo +15%, stop 1 ATR, 48h. Taxa 0:
+| | Treino | Validação | Teste |
+|---|---|---|---|
+| Top 3 sem filtro | +1,5% | −1,6% | +0,2% |
+| Top 3 vol baixa | −0,2% | −1,8% | +0,9% |
+| Top 5 sem filtro | +0,1% | −1,6% | −1,1% |
+| Top 10 sem filtro | −1,4% | −1,8% | −2,5% |
+Filtro de volatilidade não ajuda o long de forma consistente. Com taxa 0,05% quase tudo negativo. Long descartado.

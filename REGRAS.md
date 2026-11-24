@@ -3,7 +3,9 @@
 > **Regra em uso: C6** (adotada no scanner em 23/11/2026). Resumo:
 > 5 piores de 24h (vol ≥ 50k; top 5 adotado em 23/11 — teste +2,7%/trade vs +3,1% no top 3, com ~50% mais trades) · 4h: preço < MA30, MA5 < MA10 < MA30, MA30 caindo ·
 > 15m: preço < MA30, MA30 caindo, MA5 < MA10, no máx. 20% abaixo da MA30 ·
-> short 10x, alvo −15%, stop 1 ATR(14) do 4h, saída em 48h. Sem filtro de mercado.
+> **filtro de mercado: só operar com a volatilidade de 7d do índice cripto (30 maiores, pesos iguais) abaixo da mediana de 90 dias** (adotado em 24/11) ·
+> short 10x, alvo −15%, stop 1 ATR(14) do 4h, saída em 48h.
+> Backtest C6 top 5 + filtro (taxa 0): treino +8,3%, validação +12,8%, teste +4,7% por trade.
 > As seções abaixo documentam a regra original (v1) e o histórico de testes.
 
 ## Regra original (v1)

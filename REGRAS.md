@@ -160,3 +160,11 @@ Mesma construção do índice de 30 (8 semanas, rebalanceio semanal), com n=10.
 | Top 10, vol baixa, 30 por volume | +7,8% | +10,9% | +2,6% |
 | Top 10, vol baixa, 10 por volume | +9,3% | +8,8% | +2,4% |
 Equivalentes dentro do ruído. Mantido o índice de 30.
+
+### 4h simplificado (`tools/opt_4h_simples.py`) — sem MA5 < MA10 < MA30 no 4h
+Top 5 + vol baixa, taxa 0 (treino / validação / teste):
+- C6 atual: +8,4% / +12,9% / +4,8%
+- 4h só preço < MA30 e MA30 caindo: +9,3% / +12,0% / +3,9% (~10% mais trades)
+- Sem 4h: +7,8% / +9,8% / +1,1%
+- Tirar MA5 < MA10 do 15m também: pouco efeito (teste −0,6 p.p.).
+Conclusão: a ordem das médias no 4h ajuda pouco (teste +0,9 p.p.); a tendência de 4h (MA30) é essencial. Mantida a C6.

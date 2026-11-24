@@ -168,3 +168,11 @@ Top 5 + vol baixa, taxa 0 (treino / validação / teste):
 - Sem 4h: +7,8% / +9,8% / +1,1%
 - Tirar MA5 < MA10 do 15m também: pouco efeito (teste −0,6 p.p.).
 Conclusão: a ordem das médias no 4h ajuda pouco (teste +0,9 p.p.); a tendência de 4h (MA30) é essencial. Mantida a C6.
+
+### MA25 no lugar da MA30 (`tools/opt_ma25.py`)
+Top 5 + vol baixa, taxa 0 (treino / validação / teste):
+- MA30 (atual): +8,4% / +12,9% / +4,8%
+- MA25 só no 4h: +6,3% / +13,5% / +4,6%
+- MA25 só no 15m: +8,7% / +12,2% / +4,1%
+- MA25 nos dois: +6,6% / +13,0% / +4,6%
+Sem ganho; diferenças dentro do ruído. Mantida a MA30.

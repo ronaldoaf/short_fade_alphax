@@ -140,3 +140,13 @@ Melhores de 24h, tendência de alta no 4h e 15m, alvo +15%, stop 1 ATR, 48h. Tax
 | Top 5 sem filtro | +0,1% | −1,6% | −1,1% |
 | Top 10 sem filtro | −1,4% | −1,8% | −2,5% |
 Filtro de volatilidade não ajuda o long de forma consistente. Com taxa 0,05% quase tudo negativo. Long descartado.
+
+### Índice alternativo: 10 maiores por valor de mercado (`tools/vol_mcap.py`)
+Pesos iguais, sem stablecoins, composição aproximada por semestre (sem histórico de market cap nos dados).
+| C6, taxa 0 | Treino | Validação | Teste |
+|---|---|---|---|
+| Top 5, vol baixa, 30 por volume | +8,4% | +12,9% | +4,8% |
+| Top 5, vol baixa, 10 por mkt cap | +8,7% | +10,2% | +5,5% |
+| Top 10, vol baixa, 30 por volume | +7,8% | +10,9% | +2,6% |
+| Top 10, vol baixa, 10 por mkt cap | +8,3% | +7,9% | +4,0% |
+Resultados equivalentes (o filtro é robusto à escolha do índice). Mantido o índice de 30 por volume.

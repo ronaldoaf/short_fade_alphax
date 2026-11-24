@@ -184,3 +184,7 @@ Top 5 + vol baixa, taxa 0 (treino / validação / teste):
 - MA35 só no 15m: +7,8% / +12,1% / +5,8%
 - MA35 nos dois: +7,4% / +11,0% / +4,0%
 MA30 é o melhor ponto em treino+validação (25 e 35 são vizinhos piores). Mantida a MA30.
+
+### Só 2 regras: MA30 caindo no 4h e no 15m (`tools/opt_2regras.py`)
+Top 5 + vol baixa, taxa 0 (treino / validação / teste): C6 +8,4% / +12,9% / +4,8% · 2 regras +9,2% / +10,0% / +2,5% (37% mais trades).
+Com taxa 0,05% no teste: C6 +4,0% · 2 regras +1,6%. As regras extras (preço < MA30, ordem das médias, distância) ajudam. Mantida a C6.

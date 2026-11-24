@@ -195,3 +195,6 @@ Treino e validação empatam; no teste a C6 é melhor. Mantida a C6.
 
 ### MA10 < MA30 e MA30 caindo no 4h e no 15m
 Top 5 + vol baixa, taxa 0 (treino / validação / teste): C6 +8,4% / +12,9% / +4,8% · nova +8,8% / +12,2% / +2,7% · nova + dist ≤ 20%: +8,8% / +12,3% / +3,4%. Mantida a C6.
+
+### MA30 caindo comparando com 5 períodos atrás (`LAG=5 python tools/opt_lag.py`)
+Top 5 + vol baixa, taxa 0 (treino / validação / teste): C6 (10) +8,4% / +12,9% / +4,8% · 5 no 4h +7,0% / +13,2% / +3,8% · 5 no 15m +8,1% / +12,5% / +3,6% · 5 nos dois +7,0% / +13,2% / +2,7%. Mantido 10.

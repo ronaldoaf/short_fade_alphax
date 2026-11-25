@@ -219,3 +219,10 @@ Só cripto, top 5 + vol baixa, taxa 0 (média / soma / pior queda, em margens):
 | risco 70% (L = 0,7/ATR, até 10x) | +8,2% / 114 / −16 | +12,2% / 154 / −20 | +2,7% / 54 / −47 |
 Reduzir a alavancagem zera as liquidações, mas corta mais o lucro do que a queda (soma/queda no teste: 2,1 com 10x fixo,
 1,0–1,9 nas outras). As operações com ATR alto foram lucrativas no total. Mantido 10x fixo.
+
+### Saída extra: fechar se o 15m fechar acima da MA30 (`tools/opt_saida_ma.py`) — descartado
+Só cripto, top 5 + vol baixa, taxa 0 (treino / validação / teste):
+- C6 atual: +8,4% / +12,9% / +4,4% (soma no teste +95)
+- C6 + saída MA30: +0,7% / +4,1% / +1,6% (soma +50); a saída pela MA30 encerra 78–94% das operações
+- idem sem stop ATR: +0,9% / +4,0% / +1,6%
+Com taxa 0,05%: treino −0,3%, teste +0,6%. A saída corta cedo demais as operações que depois chegam ao alvo. Mantida a C6.

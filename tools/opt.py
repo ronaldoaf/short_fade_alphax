@@ -217,6 +217,27 @@ def sim_lev(h, l, c, i, tp, sl, hold, lev, liq):
     return max(-1.0, -(c[i + hold] / e - 1) * lev), 3, i + hold
 
 
+@njit(cache=True)
+def sim_ma(h, l, c, ma, i, tp, sl, hold, lev, liq):
+    """Como sim_lev, com saída extra (código 4) quando o candle de 15m fecha acima de `ma` (MA30 do 15m).
+    Ordem dentro do candle: stop/liquidação, alvo e, no fechamento, a média."""
+    e = c[i]
+    if i + hold >= len(c):
+        return np.nan, -1, -1
+    liq_px = e * (1 + liq)
+    stop = e * (1 + sl) if sl > 0 else 1e30
+    for k in range(i + 1, i + hold + 1):
+        if h[k] >= min(liq_px, stop):
+            if stop < liq_px:
+                return max(-1.0, -(stop / e - 1) * lev), 1, k
+            return -1.0, 2, k
+        if l[k] <= e * (1 - tp):
+            return tp * lev, 0, k
+        if c[k] > ma[k]:
+            return max(-1.0, -(c[k] / e - 1) * lev), 4, k
+    return max(-1.0, -(c[i + hold] / e - 1) * lev), 3, i + hold
+
+
 def liq_de(lev, mmr=0.005):
     """Alta de preço que liquida um short isolado com alavancagem `lev` (10x -> 9,5%)."""
     return 1.0 / lev - mmr
@@ -298,6 +319,15 @@ class Engine:
         self._reg = r
         return r
 
+    def ma(self, name, n):
+        """Média móvel simples de n candles de 15m do fechamento (cache)."""
+        if not hasattr(self, "_ma"):
+            self._ma = {}
+        if (name, n) not in self._ma:
+            c = pd.Series(self.P["arrs"][name]["c"].astype(np.float64))
+            self._ma[(name, n)] = c.rolling(n).mean().fillna(np.inf).to_numpy()
+        return self._ma[(name, n)]
+
     def run(self, cfg, period=None, fee=0.0):
         c = self.cand[cfg.get("vmin", 50_000)]
         if cfg.get("regime"):
@@ -324,7 +354,11 @@ class Engine:
                 slk = cfg.get("sl_atr", 0)
                 sl = slk * atr if slk and np.isfinite(atr) else cfg.get("sl", 0)
                 levfn = cfg.get("levfn")
-                if levfn is None:
+                if cfg.get("exit_ma"):  # sai se o 15m fechar acima da MA(n) do 15m
+                    lev = LEV if levfn is None else float(levfn(atr))
+                    pnl, how, k = sim_ma(a["h"], a["l"], a["c"], self.ma(names[j], cfg["exit_ma"]), int(i), tp, sl,
+                                         hold, lev, liq_de(lev))
+                elif levfn is None:
                     lev = LEV
                     pnl, how, k = sim_one(a["h"], a["l"], a["c"], int(i), tp, sl, hold)
                 else:  # alavancagem por operação, função do ATR(14) do 4h
@@ -344,7 +378,7 @@ def stats(t):
     sx = t["saida"].value_counts(normalize=True)
     return dict(n=len(t), media=round(t["pnl"].mean() * 100, 2), soma=round(t["pnl"].sum(), 1),
                 pct_tp=round(sx.get(0, 0) * 100), pct_stop=round(sx.get(1, 0) * 100),
-                pct_liq=round(sx.get(2, 0) * 100), pct_tempo=round(sx.get(3, 0) * 100))
+                pct_liq=round(sx.get(2, 0) * 100), pct_tempo=round(sx.get(3, 0) * 100), pct_ma=round(sx.get(4, 0) * 100))
 
 
 BASE = dict(top=10, vmin=50_000, big4=4, big15=4, maxdist=9, ord15=0, tp=0.10, sl=0, sl_atr=0, hold=DAY)

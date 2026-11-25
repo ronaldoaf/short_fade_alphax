@@ -1,0 +1,16 @@
+universo,alavancagem,período,n,média,soma,pior queda,soma/queda,meses +,liq,alav. média
+todos,10x fixo,treino,1390,+8.4%,117,-16,7.2,9/17,0%,10.0
+todos,10x fixo,validacao,1273,+12.9%,164,-20,8.0,10/12,7%,10.0
+todos,10x fixo,teste,2164,+4.8%,104,-45,2.3,11/16,20%,10.0
+só cripto,10x fixo,treino,1390,+8.4%,117,-16,7.2,9/17,0%,10.0
+só cripto,10x fixo,validacao,1273,+12.9%,164,-20,8.0,10/12,7%,10.0
+só cripto,10x fixo,teste,2140,+4.4%,95,-44,2.1,11/16,20%,10.0
+só cripto,5x se ATR > 9%,treino,1390,+8.0%,112,-16,6.9,9/17,0%,9.9
+só cripto,5x se ATR > 9%,validacao,1260,+11.9%,150,-21,7.2,10/12,0%,9.2
+só cripto,5x se ATR > 9%,teste,2047,+3.5%,71,-37,1.9,11/16,5%,8.0
+só cripto,risco 50%,treino,1390,+8.0%,111,-16,6.8,9/17,0%,9.7
+só cripto,risco 50%,validacao,1258,+11.3%,142,-17,8.5,10/12,0%,8.3
+só cripto,risco 50%,teste,2020,+2.1%,43,-42,1.0,11/16,0%,6.6
+só cripto,risco 70%,treino,1390,+8.2%,114,-16,6.9,9/17,0%,9.9
+só cripto,risco 70%,validacao,1258,+12.2%,154,-20,7.8,10/12,0%,9.2
+só cripto,risco 70%,teste,2020,+2.7%,54,-47,1.1,11/16,0%,7.8

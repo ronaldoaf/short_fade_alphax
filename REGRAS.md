@@ -1,11 +1,12 @@
 # Estratégia Short Fade AlphaX
 
 > **Regra em uso: C6** (adotada no scanner em 23/11/2026). Resumo:
-> 5 piores de 24h (vol ≥ 50k; top 5 adotado em 23/11 — teste +2,7%/trade vs +3,1% no top 3, com ~50% mais trades) · 4h: preço < MA30, MA5 < MA10 < MA30, MA30 caindo ·
+> 5 piores de 24h **entre as criptos** (vol ≥ 50k; ações/ETFs/índices fora do ranking desde 25/11) · 4h: preço < MA30, MA5 < MA10 < MA30, MA30 caindo ·
 > 15m: preço < MA30, MA30 caindo, MA5 < MA10, no máx. 20% abaixo da MA30 ·
 > **filtro de mercado: só operar com a volatilidade de 7d do índice cripto (30 maiores, pesos iguais) abaixo da mediana de 90 dias** (adotado em 24/11) ·
-> short 10x, alvo −15%, stop 1 ATR(14) do 4h, saída em 48h.
-> Backtest C6 top 5 + filtro (taxa 0): treino +8,3%, validação +12,8%, teste +4,7% por trade.
+> short 10x fixo, alvo −15%, stop 1 ATR(14) do 4h, saída em 48h.
+> Backtest C6 top 5 + filtro, só cripto (taxa 0): treino +8,4%, validação +12,9%, teste +4,4% por trade.
+> Sinais do scanner gravados em `data/sinais.csv`; `python tools/sinais.py` confere o resultado real.
 > As seções abaixo documentam a regra original (v1) e o histórico de testes.
 
 ## Regra original (v1)
@@ -199,3 +200,22 @@ Top 5 + vol baixa, taxa 0 (treino / validação / teste): C6 +8,4% / +12,9% / +4
 ### MA30 caindo comparando com 5 períodos atrás (`LAG=5 python tools/opt_lag.py`)
 Top 5 + vol baixa, taxa 0 (treino / validação / teste): C6 (10) +8,4% / +12,9% / +4,8% · 5 no 4h +7,0% / +13,2% / +3,8% · 5 no 15m +8,1% / +12,5% / +3,6% · 5 nos dois +7,0% / +13,2% / +2,7%. Mantido 10.
 Com 15 períodos (`LAG=15`): 15 no 4h +7,9% / +11,3% / +2,6% · 15 no 15m +8,1% / +12,9% / +4,5% · 15 nos dois +7,5% / +11,1% / +2,7%. 10 é o melhor ponto; mantido.
+
+### Só cripto no ranking (`tools/universe.py`) — ADOTADO em 25/11
+A AlphaX não informa a categoria do ativo. Classificação: lista manual de ativos tradicionais; listado no spot da Binance = cripto;
+nome com termo de empresa/fundo (Inc, Corp, ETF, 2X, Pre-IPO...) = não cripto; preço quase parado no fim de semana
+(movimento sáb/dom < 65% do de seg-sex) = não cripto.
+Na Binance há 234 perpétuos de ações/ETFs/índices (quase todos lançados em 2026). Ranqueando só cripto, no teste:
++4,8% → +4,4% por trade (2164 → 2140 trades); treino e validação iguais. Na AlphaX o efeito é grande: no scan de 25/11,
+43 dos 60 piores de 24h eram ações/ETFs. O scanner agora ranqueia só cripto (`--incluir-acoes` volta ao antigo).
+
+### Alavancagem conforme o ATR (`tools/opt_lev.py`) — testado e descartado
+Só cripto, top 5 + vol baixa, taxa 0 (média / soma / pior queda, em margens):
+| Alavancagem | Treino | Validação | Teste |
+|---|---|---|---|
+| 10x fixo | +8,4% / 117 / −16 | +12,9% / 164 / −20 | **+4,4% / 95 / −44** |
+| 5x se ATR > 9% | +8,0% / 112 / −16 | +11,9% / 150 / −21 | +3,5% / 71 / −37 |
+| risco 50% (L = 0,5/ATR, até 10x) | +8,0% / 111 / −16 | +11,3% / 142 / −17 | +2,1% / 43 / −42 |
+| risco 70% (L = 0,7/ATR, até 10x) | +8,2% / 114 / −16 | +12,2% / 154 / −20 | +2,7% / 54 / −47 |
+Reduzir a alavancagem zera as liquidações, mas corta mais o lucro do que a queda (soma/queda no teste: 2,1 com 10x fixo,
+1,0–1,9 nas outras). As operações com ATR alto foram lucrativas no total. Mantido 10x fixo.

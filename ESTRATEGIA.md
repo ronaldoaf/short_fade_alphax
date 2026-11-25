@@ -12,7 +12,8 @@ no 4h e no 15m, e só quando o mercado cripto está calmo.
   último fechamento de 4h (em fração do preço).
 
 ## 2. Universo
-1. Todos os perpétuos USDT da corretora.
+1. Todos os perpétuos USDT **de criptomoedas** da corretora. Ficam fora ações, ETFs (inclusive alavancados),
+   índices, forex e commodities (ouro, petróleo etc.), mesmo quando negociados como perpétuos.
 2. **Retorno de 24h** = fechamento atual ÷ fechamento de 24h atrás (96 candles de 15m) − 1.
 3. **Volume de 24h ≥ 50.000 USDT.**
 4. Ordenar do pior para o melhor retorno e considerar só os **5 piores**.
@@ -47,7 +48,7 @@ no 4h e no 15m, e só quando o mercado cripto está calmo.
 | Item | Valor |
 |---|---|
 | Lado | Short |
-| Alavancagem | 10x, margem isolada |
+| Alavancagem | 10x fixo, margem isolada (alavancagem menor em ativos voláteis foi testada e piorou) |
 | Entrada | Preço de fechamento do candle de 15m que gerou o sinal |
 | Alvo | Queda de **15%** no preço (+150% da margem) |
 | Stop | Entrada × (1 + ATR(14) do 4h) |
@@ -61,28 +62,29 @@ no 4h e no 15m, e só quando o mercado cripto está calmo.
 - Taxa de negociação: 0% (cenário principal) e 0,05% por lado (cenário alternativo).
 
 ## 7. Resultado do backtest
-Dados de 15m da Binance (cerca de 900 perpétuos USDT, incluindo deslistados), de jan/2023 a nov/2026.
+Dados de 15m da Binance (cerca de 670 perpétuos USDT de cripto, incluindo deslistados), de jan/2023 a nov/2026.
 Os parâmetros foram escolhidos no treino e na validação, e o teste foi rodado uma única vez.
 
 | Período | Operações | Média por operação (taxa 0) | Média por operação (taxa 0,05%) |
 |---|---|---|---|
-| Treino (jan/23 a jun/24) | 1.439 | +8,3% | +7,3% |
-| Validação (jul/24 a jun/25) | 1.329 | +12,8% | +11,8% |
-| Teste (jul/25 a nov/26) | 2.193 | +4,7% | +3,9% |
+| Treino (jan/23 a jun/24) | 1.390 | +8,4% | +7,4% |
+| Validação (jul/24 a jun/25) | 1.273 | +12,9% | +12,0% |
+| Teste (jul/25 a nov/26) | 2.140 | +4,4% | +3,6% |
 
 Os valores estão em % da margem por operação.
 
 - Saídas no teste: alvo 26%, stop 38%, liquidação 20%, tempo 16%.
-- Meses positivos no teste: 11 de 14.
-- Pior sequência de perdas: −46 margens (com 1 margem por operação).
+- Meses positivos no teste: 11 de 16.
+- Pior sequência de perdas: −44 margens (com 1 margem por operação).
 
 ## 8. Detalhes que mudam o resultado ao reproduzir
 - **Ordem dentro do candle:** quando alvo e stop (ou liquidação) acontecem no mesmo candle de 15m, conte o stop
   ou a liquidação (hipótese conservadora).
 - **Vela de 4h em formação:** inclua a vela de 4h ainda aberta nas médias. Usar só velas fechadas atrasa o sinal.
 - **Frequência:** avalie a cada 15m. Avaliar só a cada hora muda bastante quais operações acontecem.
-- **Universo:** o ranking é feito entre **todos** os perpétuos da corretora. Com outro conjunto de ativos,
-  os 5 piores mudam.
+- **Universo:** o ranking é feito entre **todas** as criptos da corretora (não só as que existem em outra corretora).
+  Com outro conjunto de ativos, os 5 piores mudam. Se a corretora não informar a categoria, separe ações/ETFs pelo
+  nome (Inc, Corp, ETF...) e pelo comportamento no fim de semana (ações quase não se movem sáb/dom).
 - **Volatilidade alta:** quando o ATR passa de cerca de 9,5%, o stop fica além da liquidação. Isso aconteceu
   em cerca de 20% das operações do teste.
 - **Período:** o resultado varia muito de mês a mês. Use pelo menos um ano de dados para avaliar.

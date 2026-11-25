@@ -199,6 +199,29 @@ def sim_one(h, l, c, i, tp, sl, hold):
     return max(-1.0, -(c[i + hold] / e - 1) * LEV), 3, i + hold  # tempo
 
 
+@njit(cache=True)
+def sim_lev(h, l, c, i, tp, sl, hold, lev, liq):
+    """Como sim_one, mas com alavancagem `lev` e liquidação em alta de `liq` (fração do preço)."""
+    e = c[i]
+    if i + hold >= len(c):
+        return np.nan, -1, -1
+    liq_px = e * (1 + liq)
+    stop = e * (1 + sl) if sl > 0 else 1e30
+    for k in range(i + 1, i + hold + 1):
+        if h[k] >= min(liq_px, stop):
+            if stop < liq_px:
+                return max(-1.0, -(stop / e - 1) * lev), 1, k
+            return -1.0, 2, k
+        if l[k] <= e * (1 - tp):
+            return tp * lev, 0, k
+    return max(-1.0, -(c[i + hold] / e - 1) * lev), 3, i + hold
+
+
+def liq_de(lev, mmr=0.005):
+    """Alta de preço que liquida um short isolado com alavancagem `lev` (10x -> 9,5%)."""
+    return 1.0 / lev - mmr
+
+
 def load():
     with open(B / "prep.pkl", "rb") as f:
         return pickle.load(f)
@@ -300,13 +323,19 @@ class Engine:
                     continue
                 slk = cfg.get("sl_atr", 0)
                 sl = slk * atr if slk and np.isfinite(atr) else cfg.get("sl", 0)
-                pnl, how, k = sim_one(a["h"], a["l"], a["c"], int(i), tp, sl, hold)
+                levfn = cfg.get("levfn")
+                if levfn is None:
+                    lev = LEV
+                    pnl, how, k = sim_one(a["h"], a["l"], a["c"], int(i), tp, sl, hold)
+                else:  # alavancagem por operação, função do ATR(14) do 4h
+                    lev = float(levfn(atr))
+                    pnl, how, k = sim_lev(a["h"], a["l"], a["c"], int(i), tp, sl, hold, lev, liq_de(lev))
                 if how < 0:
                     continue
-                f = float(a["fcum"][k] - a["fcum"][i]) * LEV
-                rows.append((i, j, max(-1.0, pnl + f - 2 * fee * LEV), how, f))
+                f = float(a["fcum"][k] - a["fcum"][i]) * lev
+                rows.append((i, j, max(-1.0, pnl + f - 2 * fee * lev), how, f, lev))
                 free = k
-        return pd.DataFrame(rows, columns=["i", "j", "pnl", "saida", "fund"])
+        return pd.DataFrame(rows, columns=["i", "j", "pnl", "saida", "fund", "lev"])
 
 
 def stats(t):

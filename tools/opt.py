@@ -369,6 +369,8 @@ class Engine:
                 f = float(a["fcum"][k] - a["fcum"][i]) * lev
                 rows.append((i, j, max(-1.0, pnl + f - 2 * fee * lev), how, f, lev))
                 free = k
+                if how in cfg.get("cool_on", (1, 2)) and cfg.get("cool", 0):  # espera X horas após stop/liquidação
+                    free = k + int(cfg["cool"] * 4)
         return pd.DataFrame(rows, columns=["i", "j", "pnl", "saida", "fund", "lev"])
 
 

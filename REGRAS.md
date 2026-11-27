@@ -226,3 +226,10 @@ Só cripto, top 5 + vol baixa, taxa 0 (treino / validação / teste):
 - C6 + saída MA30: +0,7% / +4,1% / +1,6% (soma +50); a saída pela MA30 encerra 78–94% das operações
 - idem sem stop ATR: +0,9% / +4,0% / +1,6%
 Com taxa 0,05%: treino −0,3%, teste +0,6%. A saída corta cedo demais as operações que depois chegam ao alvo. Mantida a C6.
+
+### Espera de X horas após stop antes de reentrar (`tools/opt_cooldown.py`)
+Só cripto, top 5 + vol baixa, taxa 0 (treino / validação / teste):
+- Sem espera: +8,4% / +12,9% / +4,4% (soma teste +95)
+- 24h após stop: +8,1% / +13,6% / +6,1% (soma +115) · 48h: +7,7% / +14,8% / +5,8% · 4h: +8,4% / +13,3% / +4,9%
+- Esperar também após liquidação é pior que só após stop.
+Treino neutro/levemente pior, validação e teste melhores; efeito irregular (12h pior que 4h e 24h). Candidata, não adotada.
